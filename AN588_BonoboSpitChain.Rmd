@@ -1,0 +1,54 @@
+---
+title: 'Spit Chain: Social Network Analysis in Bonobos'
+author: "Sam, Nicole, Jess, Bhavya, Brooke"
+date: "2023-10-29"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# What is a social network?
+
+![The Chart](https://static.wikia.nocookie.net/thelword/images/8/80/LW_S01E09_The_Chart_01.png/revision/latest/scale-to-width-down/1000?cb=2021083014050){width=75%} 
+
+A social network analysis describes all the individuals in a group AND all the links between them. The photo above shows a social network from the show The L Word. These are all individuals who have romantic and sexual connections to each other.
+
+![something here](https://i.giphy.com/media/fo2db15Hus2pFvxoHq/giphy.webp){width=35%} 
+
+please someone help me center these images
+
+## What do social network analyses tell us?
+
+Social network analysis includes the theory, methods, and applications of social networks. <br><br>
+In this vignette, you will learn **(1)** how to prepare social network data for analysis and **(2)** how to perform quadratic assignment procedures to assess correlations between social networks (dependent variables) and factors that may influence networks (independent variables). <br><br>
+A network analysis (as opposed to a non-network analysis) will reveal information about the group as a whole, as opposed to the individual. Non-network analysis would only look at Shane’s romantic connections alone, but social network analysis can tell us Shane’s romantic connections in relation to Alice’s and Lauren’s, etc. It could also reveal group level characteristics that don’t exist for individuals. We are looking at the patterns of relationships between individuals. An edge is as much a network-object as a node is. 
+
+## Terms to know
+- **Nodes**: the individuals in the social network
+- **Edges**: the relationships between individuals in a network
+```{r, echo=FALSE, fig.align = 'center'}
+knitr::include_graphics("https://memgraph.com/images/blog/introduction-to-node-embedding/memgraph-tutorial-graph-sketch.png")
+
+#this image needs to be smaller
+```
+
+- **Directionality**: Some social networks will have a relationship that goes in one direction e.g., Bonobo A grooms Bonobo B. Other relationships won’t have directionality, such as friendship. 
+| Directionality is relevant for understanding transactional or rank-based relationships.
+
+![Explain the smaller numbers along the lines](https://assets-global.website-files.com/5d0dc87aac109e1ffdbe379c/60e19743a601cb5dff42ce85_jd.png)
+- **Edge weight**: the strength of the relationship between individuals <br>
+This may differ between individuals within social networks <br>
+e.g.) An unweighted network might be whether A visited B’s house. The edge either exists or it doesn’t. But if the relationship is something like A giving B money, we might care about the amount they gave. This value is the edge’s weight.
+
+
+
+
+# Understanding the structure of social network data
+# Loading our data
+
+## Install packages
+
+## Data formatting
+
+[...]
