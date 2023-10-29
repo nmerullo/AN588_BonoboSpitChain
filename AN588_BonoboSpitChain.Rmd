@@ -48,7 +48,39 @@ e.g.) An unweighted network might be whether A visited B’s house. The edge eit
 # Loading our data
 
 ## Install packages
+```{r packages}
+install(statnet)
+install(igraph)
+install(intergraph)
+```
 
 ## Data formatting
+
+Load in the data.
+```{r load in}
+bonobos_gg <- data.frame(read.csv("C:/Users/brook/OneDrive/Documents/2023_Fall/AN588/AnzaEtAl_2021_Data_GG.csv"))
+bonobos_gg
+bonobos_groom <- data.frame(read.csv("C:/Users/brook/OneDrive/Documents/2023_Fall/AN588/AnzaEtAl_2021_Data_groom.csv"))
+bonobos_groom
+```
+
+Create edgelists by indexing just the actor and receiver columns into their own data frames.
+```{r edge list}
+bonobos_gg_edgelist<-bonobos[,2:3]
+bonobos_gg_edgelist
+bonobos_groom_edgelist<-bonobos_groom[,2:3]
+bonobos_groom_edgelist
+```
+
+Create network objects in statnet.
+```{r}
+library(statnet)
+
+bonobos_gg_net<-as.network.data.frame(bonobos_gg_edgelist, multiple=TRUE)
+plot(bonobos_gg_net)
+
+bonobos_groom_net<-as.network.data.frame(bonobos_groom_edgelist, multiple=TRUE)
+plot(bonobos_groom_net)
+```
 
 [...]
