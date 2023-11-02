@@ -81,5 +81,3 @@ plot(bonobos_gg_net, label = "vertex.names")
 bonobos_groom_net<-as.network.data.frame(bonobos_groom_edgelist, multiple=TRUE)
 plot(bonobos_groom_net, label = "vertex.names")
 ```
-
-[...]
