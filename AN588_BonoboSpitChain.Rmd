@@ -1,22 +1,24 @@
 ---
-title: 'Spit Chain: Social Network Analysis in Bonobos'
+title: 'Spit Chain: Social Network Analysis in Nonhuman Primates'
 author: "Sam, Nicole, Jess, Bhavya, Brooke"
 date: "2023-10-29"
-output: html_document
+output: 
+  html_document:
+    toc: true
+    toc_float: true
 ---
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+
+```{r, echo = FALSE, fig.align = 'center', out.width="75%"}
+knitr::include_graphics("https://static.wikia.nocookie.net/thelword/images/8/80/LW_S01E09_The_Chart_01.png/revision/latest/scale-to-width-down/1000?cb=2021083014050")
 ```
 
 # What is a social network?
 
-![The Chart](https://static.wikia.nocookie.net/thelword/images/8/80/LW_S01E09_The_Chart_01.png/revision/latest/scale-to-width-down/1000?cb=2021083014050){width=75%} 
-
 A social network analysis describes all the individuals in a group AND all the links between them. The photo above shows a social network from the show The L Word. These are all individuals who have romantic and sexual connections to each other.
 
-![something here](https://i.giphy.com/media/fo2db15Hus2pFvxoHq/giphy.webp){width=35%} 
-
-please someone help me center these images
+```{r, echo = FALSE, fig.align = 'center', out.width="50%"}
+knitr::include_graphics("https://i.giphy.com/media/fo2db15Hus2pFvxoHq/giphy.webp")
+```
 
 ## What do social network analyses tell us?
 
@@ -27,57 +29,91 @@ A network analysis (as opposed to a non-network analysis) will reveal informatio
 ## Terms to know
 - **Nodes**: the individuals in the social network
 - **Edges**: the relationships between individuals in a network
-```{r, echo=FALSE, fig.align = 'center'}
+```{r, echo=FALSE, out.width="70%"}
 knitr::include_graphics("https://memgraph.com/images/blog/introduction-to-node-embedding/memgraph-tutorial-graph-sketch.png")
-
-#this image needs to be smaller
 ```
 
-- **Directionality**: Some social networks will have a relationship that goes in one direction e.g., Bonobo A grooms Bonobo B. Other relationships won’t have directionality, such as friendship. 
-| Directionality is relevant for understanding transactional or rank-based relationships.
+- **Directionality**: some social networks will have a relationship that goes in one direction (e.g., Bonobo A grooms Bonobo B. Other relationships won’t have directionality, such as friendship). *Directionality is relevant for understanding transactional or rank-based relationships.*
 
-![Explain the smaller numbers along the lines](https://assets-global.website-files.com/5d0dc87aac109e1ffdbe379c/60e19743a601cb5dff42ce85_jd.png)
-- **Edge weight**: the strength of the relationship between individuals <br>
-This may differ between individuals within social networks <br>
-e.g.) An unweighted network might be whether A visited B’s house. The edge either exists or it doesn’t. But if the relationship is something like A giving B money, we might care about the amount they gave. This value is the edge’s weight.
+- **Edge weight**: the strength of the relationship between individuals, which may differ between individuals within social networks (e.g., if A gives B money, we might be interested the amount they gave. This value is the edge’s weight)
+```{r, echo=FALSE, fig.align = 'center', out.width="70%"}
+knitr::include_graphics("https://assets-global.website-files.com/5d0dc87aac109e1ffdbe379c/60e19743a601cb5dff42ce85_jd.png")
+```
 
+By the end of this module, you should be able to answer the following questions about social networks in R: <br>
+1) *How are individuals connected in a group?* <br>
+2) *How can we test the extent to which specific factors influence whether individuals in a group are connected?* <br>
+3) *What are some ways we can use social network analysis to look at non-human primates and their complex social lives?* <br>
+4) *How do networks change over time?* 
 
+To accomplish this, we will use social network datasets from nonhuman primates! 
 
-
-# Understanding the structure of social network data
-# Loading our data
-
-## Install packages
+# Installing packages
+Here are the packages we'll be using:
 ```{r packages, message=FALSE}
 library(statnet)
 library(igraph)
 library(intergraph)
 ```
 
-## Data formatting
+{igraph} and {statnet} are two of the most commonly used packages for social network analyses. Both include built-in functions that can plot networks and answer almost every beginner-level question about a given network. However, there may be some functions that are present in one package but not the other (or just work better). So, {intergraph} is another useful package that helps users transition between {igraph} and {statnet}. 
 
-Load in the data.
-```{r load in}
-bonobos_gg <- data.frame(read.csv("C:/Users/brook/OneDrive/Documents/2023_Fall/AN588/AnzaEtAl_2021_Data_GG.csv"))
-head(bonobos_gg)
-bonobos_groom <- data.frame(read.csv("C:/Users/brook/OneDrive/Documents/2023_Fall/AN588/AnzaEtAl_2021_Data_groom.csv"))
-head(bonobos_groom)
+# Understanding the structure of social network data
+
+## Loading data
+Let's start by loading our data. We'll start with a dataset about bonobos and their grooming partners and GG rubbing partners. 
+```{r load in, message = FALSE}
+library(curl)
+f <- curl("https://raw.githubusercontent.com/nmerullo/AN588_BonoboSpitChain/main/AnzaEtAl_2021_ggr.csv")
+bonobo_gg <- read.csv(f, header = TRUE, sep = ",")
+head(bonobo_gg) # this is data about their GG rubbing interactions
+q <- curl("https://raw.githubusercontent.com/nmerullo/AN588_BonoboSpitChain/main/AnzaEtAl_2021_grooming.csv")
+bonobo_groom <- read.csv(q, header = TRUE, sep = ",")
+head(bonobo_groom) # this is data about their grooming interactions
 ```
 
-Create edgelists by indexing just the actor and receiver columns into their own data frames.
-```{r edge list}
-bonobos_gg_edgelist<-bonobos_gg[,2:3] #only columns 2 and 3 have actors and receivers
-head(bonobos_gg_edgelist)
-bonobos_groom_edgelist<-bonobos_groom[,2:3] #only columns 2 and 3 have actors and receivers
-head(bonobos_groom_edgelist)
+## Setting up social network data
+How we set-up and manage the social network data can impact the ease with which we navigate our social network analysis. Based on how many individuals there are, whether we know any of their properties (age, sex, etc), and information about the edges themselves (directionality, edge-weights, etc), we can store and input data either as a matrix or an edgelist. 
+
+### Adjacency matrix
+A matrix used for social network analysis is called a **sociomatrix** or an **adjacency matrix**. They are square matrices. For directed networks, rows indicate the starting node, and columns indicate the receiving node. Undirected networks are symmetric matrices around the diagonal. For un-weighted networks, the cells contain a 1, for the presence of an edge and a 0 for the absence of an edge between individuals. For weighted networks, the cells can contain the edge-weights instead of 1s and 0s.
+
+### Edge list
+Alternatively, we can also represent network data as a columned list, called an **edge list**. Each row of the list represents one edge (one relationship between individuals). In directed data, the first column names the sender of the edge and the second column names the receiver. In undirected data, it does not matter which node is listed first. For weighted data, a third column contains a numeric value for each tie.
+
+**Is our bonobo dataset structured as an edge list or adjacency matrix?**
+
+By indexing the actor and receiver columns into separate data frames, we can create more specific edge lists.
+```{r bonobo edge list}
+bonobo_gg_edgelist <- bonobo_gg[,2:3] #only columns 2 and 3 have actors and receivers
+head(bonobo_gg_edgelist)
+bonobo_groom_edgelist <- bonobo_groom[,2:3] #only columns 2 and 3 have actors and receivers
+head(bonobo_groom_edgelist)
+```
+### Node-Level Variables
+To include variables that describe your nodes (age, rank, sex, etc), it is good practice to load in a separate file. This data frame must include one column of the node IDs using the exact same IDs used in the adjacency matrix or edge list. All other variables should then be included in additional columns.
+
+## Visualizing social network data
+We can visualize social networks by creating network objects with {statnet}. Note the arrows indicating directionality! 
+```{r bonobo network objects}
+bonobo_gg_net <- as.network.data.frame(bonobo_gg_edgelist, multiple=TRUE)
+bonobo_groom_net<-as.network.data.frame(bonobo_groom_edgelist, multiple=TRUE)
+par(mfrow = c(1, 2))
+plot(bonobo_gg_net, label = "vertex.names", main="GG rubbing")
+box(col = "black")
+plot(bonobo_groom_net, label = "vertex.names", main="Grooming")
+box(col = "black")
 ```
 
-Create network objects in statnet.
-```{r}
-library(statnet)
+# Quadratic Assignment Procedure (QAP)
+Background info here [...]
 
-bonobos_gg_net<-as.network.data.frame(bonobos_gg_edgelist, multiple=TRUE)
-plot(bonobos_gg_net, label = "vertex.names")
-bonobos_groom_net<-as.network.data.frame(bonobos_groom_edgelist, multiple=TRUE)
-plot(bonobos_groom_net, label = "vertex.names")
-```
+## Correlation
+[...] 
+
+## Multiple regression (weighted)
+[...]
+
+## Linear regression
+[...]
+
