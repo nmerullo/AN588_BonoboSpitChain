@@ -121,9 +121,34 @@ summary(qap_cor)
 
 
 ## Multiple regression (weighted)
+Independent variables must be matrices in order to be used in the QAP functions.
+We can look at whether rank affects the likelihood of sending ties or receiving ties (or both, but they must be added to the model separately).
+
+Create a matrix that shows the rank of senders.
+NOTE: Senders are represented by ROWS in the matrices
+```{r}
+nodes <- 7 # the number of nodes in the data set
+rank <- bonobo_gg$rank.act # a vector of the node-level variable we are interested in
+rank_sending <- matrix(data = NA, nrow = nodes, ncol = nodes)
+
+for (i in 1:nodes){ # for 1 through the number of nodes in the data set
+rank_sending[i,] <- rep(rank[i], nodes)} # The age of each actor is repeated over entire ROW of matrix
+rank_sending
+```
+Create a matrix that shows the rank of receivers
+NOTE: Receivers are represented by COLUMNS in the matrices
+```{r}
+rank_receiving <- matrix(data = NA, nrow = nodes, ncol = nodes)
+
+for (i in 1:nodes){ # for 1 through the number of nodes in the data set
+rank_receiving[,i] <- rep(nodes, rank[i])} # The age of each actor is repeated over entire COLUMN of matrix
+rank_receiving
+```
+
+
 ```{r}
 mrqap <- netlm(bonobo_gg_net, # dependent variable is a network object with a weighted adjacency matrix
-                list( )) # list of all independent variables as network objects or matrix objects
+                list(rank_sending)) # list of all independent variables as network objects or matrix objects
 
 summary(mrqap)
 ```
@@ -133,7 +158,7 @@ summary(mrqap)
 
 ```{r}
 lrqap <- netlogit(bonobo_gg_net, # dependent variable is a network object with an unweighted adjacency matrix
-                   list( )) # list of all independent variables as network objects or matrix objects
+                   list()) # list of all independent variables as network objects or matrix objects
 
 summary(lrqap)
 ```
