@@ -67,7 +67,7 @@ library(curl)
 f <- curl("https://raw.githubusercontent.com/nmerullo/AN588_BonoboSpitChain/main/AnzaEtAl_2021_ggr_weighted.csv")
 bonobo_gg <- read.csv(f, header = TRUE, sep = ",")
 head(bonobo_gg) # this is data about their GG rubbing interactions
-q <- curl("https://raw.githubusercontent.com/nmerullo/AN588_BonoboSpitChain/main/AnzaEtAl_2021_grooming.csv")
+q <- curl("https://raw.githubusercontent.com/nmerullo/AN588_BonoboSpitChain/main/AnzaEtAl_2021_grooming_weighted.csv")
 bonobo_groom <- read.csv(q, header = TRUE, sep = ",")
 head(bonobo_groom) # this is data about their grooming interactions
 ```
@@ -87,7 +87,7 @@ By indexing the actor and receiver columns into separate data frames, we can cre
 ```{r bonobo edge list}
 bonobo_gg_edgelist <- bonobo_gg[,1:3] #only columns 2 and 3 have actors and receivers
 head(bonobo_gg_edgelist)
-bonobo_groom_edgelist <- bonobo_groom[,2:3] #only columns 2 and 3 have actors and receivers
+bonobo_groom_edgelist <- bonobo_groom[,1:3] #only columns 2 and 3 have actors and receivers
 head(bonobo_groom_edgelist)
 ```
 ### Node-Level Variables
@@ -97,7 +97,7 @@ To include variables that describe your nodes (age, rank, sex, etc), it is good 
 We can visualize social networks by creating network objects with {statnet}. Note the arrows indicating directionality! 
 ```{r bonobo network objects}
 bonobo_gg_net <- as.network.data.frame(bonobo_gg_edgelist)
-bonobo_groom_net<-as.network.data.frame(bonobo_groom_edgelist, multiple=TRUE)
+bonobo_groom_net<-as.network.data.frame(bonobo_groom_edgelist)
 par(mfrow = c(1, 2))
 plot(bonobo_gg_net, label = "vertex.names", main="GG rubbing")
 box(col = "black")
@@ -116,6 +116,7 @@ qap_cor <- qaptest(list(bonobo_gg_net, bonobo_groom_net), # Include both network
                 g1=1, # Use the first graph in the list
                 g2=2, # Use the second graph in the list
                 reps = 1000) #1000 is a kind of arbitrary number of permutations to run
+summary(qap_cor)
 ```
 
 
