@@ -64,7 +64,7 @@ library(intergraph)
 Let's start by loading our data. We'll start with a dataset about bonobos and their grooming partners and GG rubbing partners. 
 ```{r load in, message = FALSE}
 library(curl)
-f <- curl("https://raw.githubusercontent.com/nmerullo/AN588_BonoboSpitChain/main/AnzaEtAl_2021_ggr.csv")
+f <- curl("https://raw.githubusercontent.com/nmerullo/AN588_BonoboSpitChain/main/AnzaEtAl_2021_ggr_weighted.csv")
 bonobo_gg <- read.csv(f, header = TRUE, sep = ",")
 head(bonobo_gg) # this is data about their GG rubbing interactions
 q <- curl("https://raw.githubusercontent.com/nmerullo/AN588_BonoboSpitChain/main/AnzaEtAl_2021_grooming.csv")
@@ -85,7 +85,7 @@ Alternatively, we can also represent network data as a columned list, called an 
 
 By indexing the actor and receiver columns into separate data frames, we can create more specific edge lists.
 ```{r bonobo edge list}
-bonobo_gg_edgelist <- bonobo_gg[,2:3] #only columns 2 and 3 have actors and receivers
+bonobo_gg_edgelist <- bonobo_gg[,1:3] #only columns 2 and 3 have actors and receivers
 head(bonobo_gg_edgelist)
 bonobo_groom_edgelist <- bonobo_groom[,2:3] #only columns 2 and 3 have actors and receivers
 head(bonobo_groom_edgelist)
@@ -96,7 +96,7 @@ To include variables that describe your nodes (age, rank, sex, etc), it is good 
 ## Visualizing social network data
 We can visualize social networks by creating network objects with {statnet}. Note the arrows indicating directionality! 
 ```{r bonobo network objects}
-bonobo_gg_net <- as.network.data.frame(bonobo_gg_edgelist, multiple=TRUE)
+bonobo_gg_net <- as.network.data.frame(bonobo_gg_edgelist)
 bonobo_groom_net<-as.network.data.frame(bonobo_groom_edgelist, multiple=TRUE)
 par(mfrow = c(1, 2))
 plot(bonobo_gg_net, label = "vertex.names", main="GG rubbing")
@@ -112,24 +112,27 @@ Background info here [...]
 ```{r}
 qap_cor <- qaptest(list(bonobo_gg_net, bonobo_groom_net), # Include both network objects in a list. 
                                               
-                gcor, # The next argument is the function you are using. 
-                      # Here, we are interested in correlations between networks ("gcor")
-                g1=1, # Include the first graph in the list called on line 75
-                g2=2, # Include the second graph in the list called on line 75
-                reps = 1000)
+                gcor, # the function you are using is correlation between networks (gcor) 
+                g1=1, # Use the first graph in the list
+                g2=2, # Use the second graph in the list
+                reps = 1000) #1000 is a kind of arbitrary number of permutations to run
 ```
 
 
 ## Multiple regression (weighted)
-[...]
+```{r}
+mrqap <- netlm(bonobo_gg_net, # dependent variable is a network object with a weighted adjacency matrix
+                list( )) # list of all independent variables as network objects or matrix objects
+
+summary(mrqap)
+```
+
 
 ## Linear regression
 
 ```{r}
-lrqap <- netlogit(bonobo_gg_net, # First, include dependent variable here as a network 
-                               # object or adjacency matrix saved as a matrix object
-                   list(friends_net)) # Next include a list of all your independent
-                                      # variables as network objects or matrix objects
+lrqap <- netlogit(bonobo_gg_net, # dependent variable is a network object with an unweighted adjacency matrix
+                   list( )) # list of all independent variables as network objects or matrix objects
 
 summary(lrqap)
 ```
