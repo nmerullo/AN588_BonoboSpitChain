@@ -109,11 +109,28 @@ box(col = "black")
 Background info here [...]
 
 ## Correlation
-[...] 
+```{r}
+qap_cor <- qaptest(list(bonobo_gg_net, bonobo_groom_net), # Include both network objects in a list. 
+                                              
+                gcor, # The next argument is the function you are using. 
+                      # Here, we are interested in correlations between networks ("gcor")
+                g1=1, # Include the first graph in the list called on line 75
+                g2=2, # Include the second graph in the list called on line 75
+                reps = 1000)
+```
+
 
 ## Multiple regression (weighted)
 [...]
 
 ## Linear regression
-[...]
+
+```{r}
+lrqap <- netlogit(bonobo_gg_net, # First, include dependent variable here as a network 
+                               # object or adjacency matrix saved as a matrix object
+                   list(friends_net)) # Next include a list of all your independent
+                                      # variables as network objects or matrix objects
+
+summary(lrqap)
+```
 
