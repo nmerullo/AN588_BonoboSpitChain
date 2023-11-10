@@ -23,7 +23,7 @@ knitr::include_graphics("https://i.giphy.com/media/fo2db15Hus2pFvxoHq/giphy.webp
 ## What do social network analyses tell us?
 
 Social network analysis includes the theory, methods, and applications of social networks. <br><br>
-In this vignette, you will learn **(1)** how to prepare social network data for analysis and **(2)** how to perform quadratic assignment procedures to assess correlations between social networks (dependent variables) and factors that may influence networks (independent variables). <br><br>
+In this vignette, you will learn **(1)** how to prepare social network data for analysis and **(2)** how to perform quadratic assignment procedures to assess correlations between social networks (response variables) and factors that may influence networks (predictor variables). <br><br>
 A network analysis (as opposed to a non-network analysis) will reveal information about the group as a whole, as opposed to the individual. Non-network analysis would only look at Shane’s romantic connections alone, but social network analysis can tell us Shane’s romantic connections in relation to Alice’s and Lauren’s, etc. It could also reveal group level characteristics that don’t exist for individuals. We are looking at the patterns of relationships between individuals. An edge is as much a network-object as a node is. 
 
 ## Terms to know
@@ -64,12 +64,17 @@ library(intergraph)
 Let's start by loading our data. We'll start with a dataset about bonobos and their grooming partners and GG rubbing partners. 
 ```{r load in, message = FALSE}
 library(curl)
-f <- curl("https://raw.githubusercontent.com/nmerullo/AN588_BonoboSpitChain/main/AnzaEtAl_2021_ggr.csv")
-bonobo_gg <- read.csv(f, header = TRUE, sep = ",")
-head(bonobo_gg) # this is data about their GG rubbing interactions
-q <- curl("https://raw.githubusercontent.com/nmerullo/AN588_BonoboSpitChain/main/AnzaEtAl_2021_grooming.csv")
-bonobo_groom <- read.csv(q, header = TRUE, sep = ",")
-head(bonobo_groom) # this is data about their grooming interactions
+f <- curl("https://raw.githubusercontent.com/nmerullo/AN588_BonoboSpitChain/main/AnzaEtAl_2021_ggr_weighted.csv")
+bonobo_ggr_edgelist <- read.csv(f, header = TRUE, sep = ",")
+head(bonobo_ggr_edgelist) # this is data about their GG rubbing interactions
+
+q <- curl("https://raw.githubusercontent.com/nmerullo/AN588_BonoboSpitChain/main/AnzaEtAl_2021_grooming_weighted.csv")
+bonobo_groom_edgelist <- read.csv(q, header = TRUE, sep = ",")
+head(bonobo_groom_edgelist) # this is data about their grooming interactions
+
+j <- curl("https://raw.githubusercontent.com/nmerullo/AN588_BonoboSpitChain/main/AnzaEtAl_2021_attributes.csv")
+bonobo_attribute <- read.csv(j, header = TRUE, sep = ",")
+head(bonobo_attribute)
 ```
 
 ## Setting up social network data
@@ -83,23 +88,29 @@ Alternatively, we can also represent network data as a columned list, called an 
 
 **Is our bonobo dataset structured as an edge list or adjacency matrix?**
 
-By indexing the actor and receiver columns into separate data frames, we can create more specific edge lists.
-```{r bonobo edge list}
-bonobo_gg_edgelist <- bonobo_gg[,2:3] #only columns 2 and 3 have actors and receivers
-head(bonobo_gg_edgelist)
-bonobo_groom_edgelist <- bonobo_groom[,2:3] #only columns 2 and 3 have actors and receivers
-head(bonobo_groom_edgelist)
-```
 ### Node-Level Variables
 To include variables that describe your nodes (age, rank, sex, etc), it is good practice to load in a separate file. This data frame must include one column of the node IDs using the exact same IDs used in the adjacency matrix or edge list. All other variables should then be included in additional columns.
 
-## Visualizing social network data
-We can visualize social networks by creating network objects with {statnet}. Note the arrows indicating directionality! 
+```{r}
+head(bonobo_attribute)
+```
+Create the network objects and add the node attributes to the objects.
 ```{r bonobo network objects}
-bonobo_gg_net <- as.network.data.frame(bonobo_gg_edgelist, multiple=TRUE)
-bonobo_groom_net<-as.network.data.frame(bonobo_groom_edgelist, multiple=TRUE)
+bonobo_ggr_net <- as.network.data.frame(bonobo_ggr_edgelist) #Creates a network of G-G rubbing
+bonobo_groom_net<-as.network.data.frame(bonobo_groom_edgelist) #Creates a network of grooming
+
+bonobo_ggr_net %v% "rank" <- bonobo_attribute$rank #adds a rank variable to the G-G rubbing network
+bonobo_ggr_net %v% "age" <- bonobo_attribute$age #adds an age variable to the G-G rubbing network
+bonobo_groom_net %v% "rank" <- bonobo_attribute$rank #adds a rank variable to the grooming network
+bonobo_groom_net %v% "age" <- bonobo_attribute$age #adds an age variable to the grooming network
+```
+
+## Visualizing social network data
+ 
+We can visualize social networks by creating network objects with {statnet}. Note the arrows indicating directionality!
+```{r visuzalize}
 par(mfrow = c(1, 2))
-plot(bonobo_gg_net, label = "vertex.names", main="GG rubbing")
+plot(bonobo_ggr_net, label = "vertex.names", main="GG rubbing")
 box(col = "black")
 plot(bonobo_groom_net, label = "vertex.names", main="Grooming")
 box(col = "black")
@@ -109,11 +120,75 @@ box(col = "black")
 Background info here [...]
 
 ## Correlation
-[...] 
+```{r}
+qap_cor <- qaptest(list(bonobo_ggr_net, bonobo_groom_net), # Include both network objects in a list. 
+                                              
+                gcor, # the function you are using is correlation between networks (gcor) 
+                g1=1, # Use the first graph in the list
+                g2=2, # Use the second graph in the list
+                reps = 1000) #1000 is a kind of arbitrary number of permutations to run
+summary(qap_cor)
+```
+
 
 ## Multiple regression (weighted)
-[...]
+Predictor variables must be matrices in order to be used in the QAP functions.
+We can look at whether rank affects the weight of ties sent or received (or both, but they must be added to the model separately).
+
+Create a matrix that shows the rank of senders.
+NOTE: Senders are represented by ROWS in the matrices
+```{r}
+nodes <- 7 # the number of nodes in the data set
+rank <- bonobo_ggr_net %v% "rank" # a vector of the node-level variable we are interested in
+
+rank_sending <- matrix(data = NA, nrow = nodes, ncol = nodes) #create an empty matrix to be filled
+
+for (i in 1:nodes){ # for 1 through the number of nodes in the data set
+rank_sending[i,] <- rep(rank[i], nodes)} # The age of each actor is repeated over entire ROW of matrix
+rank_sending
+```
+Create a matrix that shows the rank of receivers
+NOTE: Receivers are represented by COLUMNS in the matrices
+```{r}
+rank_receiving <- matrix(data = NA, nrow = nodes, ncol = nodes)
+
+for (i in 1:nodes){ # for 1 through the number of nodes in the data set
+rank_receiving[,i] <- rep(rank[i], nodes)} # The age of each actor is repeated over entire COLUMN of matrix
+rank_receiving
+```
+
+Does rank affect how many times bonobos G-G rubbed others (the weight of the edges they sent)?
+```{r}
+mrqap <- netlm(bonobo_ggr_net, # response variable is a network object with a weighted adjacency matrix
+                list(rank_sending)) # list of all predictor variables as network objects or matrix objects
+
+summary(mrqap)
+```
+
+Does rank affect how many times bonobos received G-G rubbing from others (the weight of the edges they receive)?
+```{r}
+mrqap <- netlm(bonobo_ggr_net, # response variable is a network object with a weighted adjacency matrix
+                list(rank_receiving)) # list of all predictor variables as network objects or matrix objects
+
+summary(mrqap)
+```
+
+We can include multiple predictor variables! We can also use another network as a predictor variables!
+
+Do sender rank and grooming relationships predict the number of times bonobos G-G rubbed in the network?
+```{r}
+mrqap <- netlm(bonobo_ggr_net, # response variable is a network object with a weighted adjacency matrix
+                list(rank_receiving, bonobo_groom_net)) # list of all predictor variables as network objects or matrix objects
+
+summary(mrqap)
+```
 
 ## Linear regression
-[...]
+
+```{r}
+lrqap <- netlogit(bonobo_gg_net, # response variable is a network object with an unweighted adjacency matrix
+                   list()) # list of all predictor variables as network objects or matrix objects
+
+summary(lrqap)
+```
 
