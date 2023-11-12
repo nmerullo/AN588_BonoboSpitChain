@@ -192,3 +192,76 @@ lrqap <- netlogit(bonobo_gg_net, # response variable is a network object with an
 summary(lrqap)
 ```
 
+# Spidermonkey Social Networks
+```{r spmonkey}
+spmonkey_dat <- curl("https://raw.githubusercontent.com/nmerullo/AN588_BonoboSpitChain/main/spidermonkey_beh_edgelist.csv")
+
+spmonkey_el <- read.csv(spmonkey_dat)
+head(spmonkey_el)
+unique(spmonkey_el$Beh)
+```
+We see here that we have four unique behaviors that spidermonkeys are engaging in. This means there can be four separate social networks we can construct. Additionally, the packages that we use can only read edgelists that are in the form of a 2-column format. So, let's clean this data up a bit more. 
+
+```{r spmoney_mating}
+
+#Mating Social Network: 
+
+mating_spmonkey <- spmonkey_el[spmonkey_el$Beh == "mating",] #making a separate data frame for mating
+mating_spmonkey <- mating_spmonkey[,-c(2,4)] #removing unnecessary data. We will add back the "Mins" data as edge attributes later. 
+sp_mating_net <- as.network(mating_spmonkey, matrix.type = "edgelist", directed = TRUE, multiple = TRUE)
+plot(sp_mating_net, label = "vertex.names", main="Spidermonkey Mating")
+
+#Let's add network and edge attributes to the network
+sp_attr <- curl("https://raw.githubusercontent.com/nmerullo/AN588_BonoboSpitChain/main/spidermonkey_attributes.csv")
+sp_attr <- read.csv(sp_attr)
+head(sp_attr)
+
+sp_mating_net %v% "sex" <- sp_attr$sex #adds sex as a node attribute
+sp_mating_net %v% "age" <- sp_attr$age #adds age as a node attribute
+sp_mating_net %v% "repr" <- sp_attr$Repr_status #adds reproductive status as a node attribute
+
+#let's add the "Mins" from the initial spmonkey edgelist as edge weights
+sp_mating_net %e% "time" <- spmonkey_el[spmonkey_el$Beh == "mating",]$Mins 
+```
+This process can be repeated for grooming, play and contact networks.
+
+```{r sp_play}
+play_spmonkey <- spmonkey_el[spmonkey_el$Beh == "play",][,-c(2,4)] #making a separate data frame for play behavior
+sp_play_net <- as.network(play_spmonkey, matrix.type = "edgelist", directed = TRUE, multiple = TRUE)
+plot(sp_play_net, label = "vertex.names", main="Spidermonkey Play")
+
+#Adding network and edge attributes to the network
+sp_play_net %v% "sex" <- sp_attr$sex #adds sex as a node attribute
+sp_play_net %v% "age" <- sp_attr$age #adds age as a node attribute
+sp_play_net %v% "repr" <- sp_attr$Repr_status #adds reproductive status as a node attribute
+
+#let's add the "Mins" from the initial spmonkey edgelist as edge weights
+sp_play_net %e% "time" <- spmonkey_el[spmonkey_el$Beh == "play",]$Mins 
+```
+```{r sp_groom}
+groom_spmonkey <- spmonkey_el[spmonkey_el$Beh == "groom",][,-c(2,4)] #making a separate data frame for grooming behavior
+sp_groom_net <- as.network(groom_spmonkey, matrix.type = "edgelist", directed = TRUE, multiple = TRUE, loops = TRUE)
+plot(sp_groom_net, label = "vertex.names", main="Spidermonkey Grooming")
+
+#Adding network and edge attributes to the network
+sp_groom_net %v% "sex" <- sp_attr$sex #adds sex as a node attribute
+sp_groom_net %v% "age" <- sp_attr$age #adds age as a node attribute
+sp_groom_net %v% "repr" <- sp_attr$Repr_status #adds reproductive status as a node attribute
+
+#let's add the "Mins" from the initial spmonkey edgelist as edge weights
+sp_groom_net %e% "time" <- spmonkey_el[spmonkey_el$Beh == "groom",]$Mins 
+```
+```{r sp_contact}
+contact_spmonkey <- spmonkey_el[spmonkey_el$Beh == "In contact",][,-c(2,4)] #making a separate data frame for contact
+sp_contact_net <- as.network(contact_spmonkey, matrix.type = "edgelist", directed = TRUE, multiple = TRUE, loops = TRUE)
+plot(sp_contact_net, label = "vertex.names", main="Spidermonkey Contact")
+
+#Adding network and edge attributes to the network
+sp_contact_net %v% "sex" <- sp_attr$sex #adds sex as a node attribute
+sp_contact_net %v% "age" <- sp_attr$age #adds age as a node attribute
+sp_contact_net %v% "repr" <- sp_attr$Repr_status #adds reproductive status as a node attribute
+
+#let's add the "Mins" from the initial spmonkey edgelist as edge weights
+sp_contact_net %e% "time" <- spmonkey_el[spmonkey_el$Beh == "In contact",]$Mins 
+```
+
