@@ -1,5 +1,4 @@
 Focal,Beh,Rec,Mins
-Focal,Beh,Rec,Mins
 Ba,In contact,Bo,262
 Ba,In contact,Db,1
 Ba,In contact,Dl,134
@@ -91,11 +90,10 @@ Wa,In contact,Pi,64
 Wa,In contact,RK,11
 Wa,In contact,Vi,246
 Nw,mating,Dl,10
-Ba,mating,Pk,10
+Ba,mating,Pk,42
 Ba,mating,Nw,12
 Nw,mating,Ba,16
 Pe,mating,Pk,13
-Ba,mating,Pk,32
 Pe,mating,Pk,15
 Nw,mating,Dl,15
 Wa,mating,Dl,40
