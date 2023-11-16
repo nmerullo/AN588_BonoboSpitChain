@@ -185,9 +185,9 @@ summary(mrqap)
 
 ## Linear regression
 
-```{r}
-lrqap <- netlogit(bonobo_gg_net, # response variable is a network object with an unweighted adjacency matrix
-                   list()) # list of all predictor variables as network objects or matrix objects
+```{r, eval = FALSE}
+lrqap <- netlogit(bonobo_ggr_net, # response variable is a network object with an unweighted adjacency matrix
+                   list(something needs to go here)) # list of all predictor variables as network objects or matrix objects
 
 summary(lrqap)
 ```
