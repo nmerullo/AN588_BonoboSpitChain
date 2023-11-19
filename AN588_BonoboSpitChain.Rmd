@@ -78,6 +78,11 @@ How we set-up and manage the social network data can impact the ease with which 
 
 ### Adjacency matrix
 A matrix used for social network analysis is called a **sociomatrix** or an **adjacency matrix**. They are square matrices. For directed networks, rows indicate the starting node, and columns indicate the receiving node. Undirected networks are symmetric matrices around the diagonal. For un-weighted networks, the cells contain a 1, for the presence of an edge and a 0 for the absence of an edge between individuals. For weighted networks, the cells can contain the edge-weights instead of 1s and 0s.
+```{r adjacency matrix fig, echo = FALSE}
+knitr::include_graphics("https://www.researchgate.net/publication/327368736/figure/fig1/AS:666036512768011@1535806887938/Representation-of-Social-Networks-using-a-a-Graph-or-b-Matrix.png")
+# trying to find a pic of matrix and edge list here
+```
+
 
 ### Edge list
 Alternatively, we can also represent network data as a columned list, called an **edge list**. Each row of the list represents one edge (one relationship between individuals). In directed data, the first column names the sender of the edge and the second column names the receiver. In undirected data, it does not matter which node is listed first. For weighted data, a third column contains a numeric value for each tie.
@@ -126,7 +131,7 @@ QAP is a resampling-based method that controls for non-independence in network s
 knitr::include_graphics("QAP_permutation_figure.png")
 ```
 
-There are 3 types of QAP regressions we can run with {statnet}: correlation regressions, linear regressions, and multiple regressions. We will describe and demonstrate each regression using the bonobo data.
+There are 3 types of QAP regressions we can run with {statnet}: correlation regressions, linear regressions, and logistic regressions. We will describe and demonstrate each regression using the bonobo data. We'll also do the same with a more complex dataset from spider monkeys! 
 
 ## 1. Correlation
 Correlation QAPs simply test whether two social networks are correlated. For example, using our bonobo datasets, we can ask: 
@@ -137,7 +142,7 @@ We can start by using the gcor() function to get a correlation coefficient betwe
 gcor(bonobo_ggr_net, bonobo_groom_net)
 ```
 
-These networks don't seem very correlated but let's test for significance anyways.
+These networks don't seem very correlated but let's test for significance anyways. The qaptest() function uses Monte Carlo simulations of likelihood quantiles to test arbitrary graph-level statistics against a QAP null hypothesis.
 ```{r correlation qap bonobo2}
 qap_cor <- qaptest(list(bonobo_ggr_net, bonobo_groom_net), # include both network objects in a list
                 gcor, # the function you're using is correlation between networks (gcor) 
@@ -146,12 +151,18 @@ qap_cor <- qaptest(list(bonobo_ggr_net, bonobo_groom_net), # include both networ
                 reps = 1000) # number of permutations to run
 summary(qap_cor)
 ```
-[DESCRIBE/INTERPRET OUTPUT]
+Under "Estimated p-values", we can see that our p-values are very high and not significant, meaning we can accept our null hypothesis. There is no significant correlation between grooming and GG rubbing networks. Under "Test Diagnostics", the test value represents the correlation coefficient between grooming and GG rubbing networks. We previously calculated this using the gcor() function.
 
-Should we plot these and explain them? Is that helpful at all? -sam
+[Why are there 2 p-values? How to interpret distribution summary? -Sam]
 
-## 2. Multiple regression (weighted)
-Multiple regression QAPs test the extent to which predictor variables are affecting edge weights. <br>
+We can also visualize this comparison using the plot() function.
+```{r qap correlation plot}
+plot(qap_cor)
+```
+[Describe what we see here -Sam]
+
+## 2. Linear regression
+Linear regression QAPs test the extent to which predictor variables are affecting edge weights. <br>
 For example, if our predictor variable is rank, we can ask: **Are high-ranking or low-ranking individuals more tied through GG rubbing?** In other words, we are asking: how many times are you likely to have more edges for each unit increase in rank?
 
 Predictor variables must be matrices in order to be used in the QAP functions. We can look at whether rank affects the weight of ties sent or received (or both, but they must be added to the model separately).
@@ -204,8 +215,8 @@ summary(mrqap)
 ```
 [DESCRIBE/INTERPRET OUTPUT]
 
-## 3. Linear regression
-Linear regression QAPs test the extent to which independent variables are affecting the presence or absence of edges. <br>
+## 3. Logistic regression
+Logistic regression QAPs test the extent to which independent variables are affecting the presence or absence of edges. If you have a network with binary ties, we can use this regression method to predict ties in the outcome network (response variable) <br>
 Using our bonobo dataset, we can ask: **Does older age make an individual more or less likely to G-G rub with other individuals?** <br>
 In this example, our grooming network is the response variable while age is our predictor variable.
 
@@ -226,13 +237,17 @@ age_receiving[,i] <- rep(age[i], nodes)}
 age_receiving
 ```
 
-Now we can run our linear regression! 
+Now we can run our logistic regression! The netlogit() function performs a logistic regression of the network variable for the response variable (bonobo_ggr_net) on the network variables in the predictor variables (age_receiving and age_sending). The resulting fits and coefficients are tested against the null hypothesis.
 ```{r linear qap bonobo}
 lrqap <- netlogit(bonobo_ggr_net, # response variable is a network object with an unweighted adjacency matrix
-                  list(age_receiving, age_sending)) # list of all predictor variables as network or matrix objects
+                  list(age_receiving, age_sending), # list of all predictor variables as network or matrix objects
+                  reps = 1000) # number of draws for quantile estimation, 1000 reps is the default
 summary(lrqap)
 ```
-In the output above, x1 represents the first variable in the model (age_receiving), and x2 represents the second variable in the model (age_sending). [DESCRIBE/INTERPRET OUTPUT]
+As a reminder, we are testing whether age affects the likelihood of giving and receiving GG rubbing. In the output above, x1 represents the first variable in the model (age_receiving), and x2 represents the second variable in the model (age_sending). [DESCRIBE/INTERPRET OUTPUT]
+
+https://stackoverflow.com/questions/40878163/interpreting-netlogit-output
+
 
 # Spider Monkey Social Networks
 [Something here about why we're doing this again with spider monkey data, maybe describe spider monkeys as a species a little]
@@ -346,7 +361,7 @@ qap_cor <- qaptest(list(sp_groom_net, sp_contact_net), # include both network ob
 summary(qap_cor)
 ```
 
-### Multiple regression (weighted)
+### Linear regression
 Create a matrix that shows the rank of senders.
 NOTE: Senders are represented by ROWS in the matrices
 ```{r}
@@ -377,7 +392,7 @@ mrqap <- netlm(sp_groom_net, # response variable is a network object with a weig
 summary(mrqap)
 ```
 
-## Linear regression
+## Logistic regression
 **Does reproductive status predict mating behavior (number of ties in mating social network)?**
 ```{r}
 nodes <- 16 # the number of nodes in the data set
@@ -402,7 +417,8 @@ sex_receiving
 
 ```{r}
 lrqap <- netlogit(sp_play_net_unweighted, # response variable is a network object with an unweighted adjacency matrix
-                   list(sex_receiving, sex_sending)) # list of predictor variables as network or matrix objects
+                  list(sex_receiving, sex_sending), # list of predictor variables as network or matrix objects
+                  reps = 1000) 
 summary(lrqap)
 ```
 
