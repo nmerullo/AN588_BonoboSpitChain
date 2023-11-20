@@ -4,7 +4,7 @@ author: "Sam, Nicole, Jess, Bhavya, Brooke"
 date: "2023-10-29"
 output: 
   html_document:
-    theme: cosmo
+    theme: journal
     toc: true
     toc_float: true
 ---
@@ -46,10 +46,14 @@ By the end of this module, you should be able to answer the following questions 
 2) *How can we test the extent to which specific factors influence whether individuals in a group are connected?* <br>
 3) *How do networks change over time?* 
 
-To accomplish this, we will use social network datasets from nonhuman primates! 
+To accomplish this, we will use social network datasets from nonhuman primates! We will start with a dataset from bonobos. Bonobos are one of our closest living relatives and live in multi-male/multi-female social groups. Female bonobos are highly cohesive and have strong affiliative bonds. These bonds are maintained through high levels of sociosexual behavior, the most common being genito-genital (GG) rubbing. But similar to other primates, bonobos will also groom each other.
+
+```{r, echo = FALSE, fig.align = 'center', out.width="75%"}
+knitr::include_graphics("https://news.asu.edu/sites/default/files/bonobo_kokolopori_martin_surbeck.jpg")
+```
 
 # Installing packages
-Here are the packages we'll be using:
+Here are the packages we will be using:
 ```{r packages, message=FALSE}
 library(statnet)
 library(igraph)
@@ -61,7 +65,7 @@ library(intergraph)
 # Understanding the structure of social network data
 
 ## Loading data
-Let's start by loading our data. We'll start with a dataset about bonobos and their grooming partners and GG rubbing partners. 
+Let's start by loading our data from bonobos. There are two datasets from the same bonobo population. One describes their GG rubbing network and the other describes their grooming networks.
 ```{r load in, message = FALSE}
 library(curl)
 f <- curl("https://raw.githubusercontent.com/nmerullo/AN588_BonoboSpitChain/main/AnzaEtAl_2021_ggr_weighted.csv")
@@ -101,7 +105,7 @@ bonobo_attribute <- read.csv(j, header = TRUE, sep = ",")
 head(bonobo_attribute)
 ```
 
-Now we can create the network objects and add node attributes to the objects. Note that adding note attributes to objects involves '%v%', which resembles a pipe. This functions similarly to a $ operator and allows us to add rank variables to a dataset.
+Now we can create the network objects and add node attributes to the objects. Note that adding node attributes to objects involves '%v%', which resembles a pipe. This functions similarly to a $ operator and allows us to add rank variables to a dataset.
 ```{r bonobo network objects}
 bonobo_ggr_net <- as.network.data.frame(bonobo_ggr_edgelist) # creates GG rubbing network 
 bonobo_groom_net<-as.network.data.frame(bonobo_groom_edgelist) # creates grooming network
@@ -111,6 +115,13 @@ bonobo_ggr_net %v% "age" <- bonobo_attribute$age #adds age variable to GG rubbin
 bonobo_groom_net %v% "rank" <- bonobo_attribute$rank #adds rank variable to grooming network
 bonobo_groom_net %v% "age" <- bonobo_attribute$age #adds age variable to grooming network
 ```
+
+Now that everything it set up, we can use summary() to look at our networks. For example, let's take a look at the bonobo grooming network. 
+```{r bonobo network objects2}
+summary(bonobo_ggr_net)
+```
+
+**Using what we have learned so far, how can we interpret the output of this summary?**
 
 ## Visualizing social network data
  
@@ -134,16 +145,20 @@ QAP is a resampling-based method that controls for non-independence in network s
 knitr::include_graphics("QAP_permutation_figure.png")
 ```
 
-There are 3 types of QAP regressions we can run with {statnet}: correlation regressions, linear regressions, and logistic regressions. We will describe and demonstrate each regression using the bonobo data. We'll also do the same with a more complex dataset from spider monkeys! 
+There are 3 types of QAP regressions we can run with {statnet}: correlation regressions, multiple/linear regressions, and logistic regressions. We will describe and demonstrate each regression using the bonobo data. We'll also do the same with a more complex dataset from spider monkeys! 
 
 ## 1. Correlation
 Correlation QAPs simply test whether two social networks are correlated. For example, using our bonobo datasets, we can ask: 
 **Do bonobos who groom each other correlate with bonobos who GG rub with one another?**
 
+**What is our null hypothesis and alternative hypothesis in this question?**
+
 We can start by using the gcor() function to get a correlation coefficient between the two networks.
 ```{r correlation qap bonobo1}
 gcor(bonobo_ggr_net, bonobo_groom_net)
 ```
+
+**What does this correlation coefficient signify?**
 
 These networks don't seem very correlated but let's test for significance anyways. The qaptest() function uses Monte Carlo simulations of likelihood quantiles to test arbitrary graph-level statistics against a QAP null hypothesis.
 ```{r correlation qap bonobo2}
@@ -154,19 +169,21 @@ qap_cor <- qaptest(list(bonobo_ggr_net, bonobo_groom_net), # include both networ
                 reps = 1000) # number of permutations to run
 summary(qap_cor)
 ```
-Under "Estimated p-values", we can see that our p-values are very high and not significant, meaning we can accept our null hypothesis. There is no significant correlation between grooming and GG rubbing networks. Under "Test Diagnostics", the test value represents the correlation coefficient between grooming and GG rubbing networks. We previously calculated this using the gcor() function.
+Under "Test Diagnostics", the test value represents the correlation coefficient between grooming and GG rubbing networks. This is interpreted at the level of the dyad, pairs who groom each other are likely not related to pairs who GG rub with one another. We previously calculated this using the gcor() function.
 
-[Why are there 2 p-values? How to interpret distribution summary? -Sam]
+Under "Estimated p-values", we find statistics that tell us about how this observed correlation compares to what the correlation looks like when we randomly permute one of our networks. Note that these are both one-tailed p-values! We can see that our p-values are greater than 0.05, meaning we have significant evidence to fail to reject our null hypothesis. There is no significant correlation between grooming and GG rubbing networks.
 
-We can also visualize this comparison using the plot() function.
+We can also visualize the "Distribution Summary" using the plot() function.
 ```{r qap correlation plot}
 plot(qap_cor)
 ```
-[Describe what we see here -Sam]
 
-## 2. Linear regression
-Linear regression QAPs test the extent to which predictor variables are affecting edge weights. <br>
-For example, if our predictor variable is rank, we can ask: **Are high-ranking or low-ranking individuals more tied through GG rubbing?** In other words, we are asking: how many times are you likely to have more edges for each unit increase in rank?
+The dotted line gives us the correlation among the observed networks. The curve shows the distribution of correlations across permuted networks. Our plot shows that across 1000 replications, very rarely do we see any correlation between grooming and GG rubbing networks in this bonobo population. The correlation tends to center around 0.
+
+## 2. Linear/Multiple regression
+Linear regression QAPs test the extent to which predictor variables are affecting edge weights. Recall that our predictor variables are node attributes. 
+
+For example, if our predictor variable is rank, we can ask: **Are high-ranking or low-ranking individuals more tied through GG rubbing?** In other words, we are asking: Is a bonobo more likely to have more weighted edges for each unit increase in rank?
 
 Predictor variables must be matrices in order to be used in the QAP functions. We can look at whether rank affects the weight of ties sent or received (or both, but they must be added to the model separately).
 
@@ -178,7 +195,7 @@ rank <- bonobo_ggr_net %v% "rank" # a vector of the node-level variable we are i
 rank_sending <- matrix(data = NA, nrow = nodes, ncol = nodes) # create empty matrix to be filled for senders
 
 for (i in 1:nodes){ # for 1 through the number of nodes in the data set
-rank_sending[i,] <- rep(rank[i], nodes)} # the age of each actor is repeated over entire ROW of matrix
+rank_sending[i,] <- rep(rank[i], nodes)} # the rank of each actor is repeated over entire ROW of matrix
 rank_sending
 ```
 
@@ -187,28 +204,39 @@ Next, we must create a matrix that shows the rank of receivers. Note that receiv
 rank_receiving <- matrix(data = NA, nrow = nodes, ncol = nodes) # empty matrix for receivers
 
 for (i in 1:nodes){ # for 1 through the number of nodes in the data set
-rank_receiving[,i] <- rep(rank[i], nodes)} # the age of each actor is repeated over entire COLUMN of matrix
+rank_receiving[,i] <- rep(rank[i], nodes)} # the rank of each receiver is repeated over entire COLUMN of matrix
 rank_receiving
 ```
 
-Now we can run our multiple regression! First we are asking:
+Now we can run our linear regression! First we are asking:
 **Does rank affect how many times bonobos G-G rubbed others (the weight of the edges they sent)?**
-```{r multiple regression qap bonobo 1}
-mrqap <- netlm(bonobo_ggr_net, # response variable is a network object with a weighted adjacency matrix
+```{r linear regression qap bonobo 1}
+lrqap <- netlm(bonobo_ggr_net, # response variable is a network object with a weighted adjacency matrix
                 list(rank_sending)) # list of predictor variables as network or matrix objects
-summary(mrqap)
+summary(lrqap)
 ```
-[DESCRIBE/INTERPRET OUTPUT]
+x1 is gg rubbing, estimate = -0.1161796 is beta 1, intercept = 0.8507548 is beta 0
+when an individual's rank is 0, the predicted weight of a tie for gg rubbing is -0.1 - this makes no sense but it doesn't matter because the model is not significant
+
+r^2 is how much variance the model is soaking up, rank does not predict much of gg rubbing intensity.
+
+Because the F-statistic's p-value is not significant, we can say that the rank of sender is not significantly explaining much of the variation of GG rubbing intensity (weight of the ties between individuals)
+
+- What are residuals?
+- explain coefficients?
+- SE and r^2
+
 
 **Does rank affect how many times bonobos received G-G rubbing from others (the weight of the edges they receive)?**
-```{r multiple regression qap bonobo 2}
-mrqap <- netlm(bonobo_ggr_net, # response variable is a network object with a weighted adjacency matrix
+```{r linear regression qap bonobo 2}
+lrqap2 <- netlm(bonobo_ggr_net, # response variable is a network object with a weighted adjacency matrix
                 list(rank_receiving)) # list of predictor variables as network or matrix objects
-summary(mrqap)
+summary(lrqap2)
 ```
 [DESCRIBE/INTERPRET OUTPUT]
+rank of receiver is even less predictive of intensity of GG rubbing, nd we know this based on [...]
 
-We can include multiple predictor variables! We can also use another network as a predictor variable! For example, we can ask:
+We can include multiple predictor variables! We can also use another network as a predictor variable! By doing so, we are conducting a multiple regression QAP. For example, we can ask:
 **Do sender rank and grooming relationships predict the number of times bonobos G-G rubbed in the network?**
 ```{r multiple regression qap bonobo 3}
 mrqap <- netlm(bonobo_ggr_net, # response variable is a network object with a weighted adjacency matrix
@@ -216,12 +244,14 @@ mrqap <- netlm(bonobo_ggr_net, # response variable is a network object with a we
 
 summary(mrqap)
 ```
-[DESCRIBE/INTERPRET OUTPUT]
+[DESCRIBE/INTERPRET OUTPUT] not significant based on these values
 
 ## 3. Logistic regression
 Logistic regression QAPs test the extent to which independent variables are affecting the presence or absence of edges. If you have a network with binary ties, we can use this regression method to predict ties in the outcome network (response variable) <br>
 Using our bonobo dataset, we can ask: **Does older age make an individual more or less likely to G-G rub with other individuals?** <br>
-In this example, our grooming network is the response variable while age is our predictor variable.
+In this example, our GG rubbing network is the response variable while age is our predictor variable.
+
+If you imagine age (as the predictor variable) on the x axis, for every year a bonobo gets older, are they more likely to GG rub with more individuals? Will an older individual have more ties on the social network?
 
 Similar to the multiple regression, we must first create a matrix that shows the rank of senders and receivers. As a reminder, senders are represented by ROWS while receivers are represented by COLUMNS in matrices 
 ```{r matrix age bonobo}
@@ -241,11 +271,11 @@ age_receiving
 ```
 
 Now we can run our logistic regression! The netlogit() function performs a logistic regression of the network variable for the response variable (bonobo_ggr_net) on the network variables in the predictor variables (age_receiving and age_sending). The resulting fits and coefficients are tested against the null hypothesis.
-```{r linear qap bonobo}
-lrqap <- netlogit(bonobo_ggr_net, # response variable is a network object with an unweighted adjacency matrix
+```{r logistic qap bonobo}
+logqap <- netlogit(bonobo_ggr_net, # response variable is a network object with an unweighted adjacency matrix
                   list(age_receiving, age_sending), # list of all predictor variables as network or matrix objects
                   reps = 1000) # number of draws for quantile estimation, 1000 reps is the default
-summary(lrqap)
+summary(logqap)
 ```
 As a reminder, we are testing whether age affects the likelihood of giving and receiving GG rubbing. In the output above, x1 represents the first variable in the model (age_receiving), and x2 represents the second variable in the model (age_sending). [DESCRIBE/INTERPRET OUTPUT]
 
@@ -375,7 +405,7 @@ age_sending <- matrix(data = NA, nrow = nodes, ncol = nodes) #create an empty ma
 
 for (i in 1:nodes){ # for 1 through the number of nodes in the data set
 age_sending[i,] <- rep(age[i], nodes)} # The age of each actor is repeated over entire ROW of matrix
-age_sending
+head(age_sending)
 ```
 Create a matrix that shows the rank of receivers
 NOTE: Receivers are represented by COLUMNS in the matrices
@@ -384,7 +414,7 @@ age_receiving <- matrix(data = NA, nrow = nodes, ncol = nodes)
 
 for (i in 1:nodes){ # for 1 through the number of nodes in the data set
 age_receiving[,i] <- rep(age[i], nodes)} # The age of each actor is repeated over entire COLUMN of matrix
-age_receiving
+head(age_receiving)
 ```
 
 **Is age category predictive of time spent in grooming behavior within dyads of spider monkeys?**
@@ -405,7 +435,7 @@ sex_sending <- matrix(data = NA, nrow = nodes, ncol = nodes) #create an empty ma
 
 for (i in 1:nodes){ # for 1 through the number of nodes in the data set
 sex_sending[i,] <- rep(sex[i], nodes)} # age of each actor is repeated over entire ROW of matrix
-sex_sending
+head(sex_sending)
 ```
 
 Create a matrix that shows the rank of receivers
@@ -415,7 +445,7 @@ sex_receiving <- matrix(data = NA, nrow = nodes, ncol = nodes)
 
 for (i in 1:nodes){ # for 1 through the number of nodes in the data set
 sex_receiving[,i] <- rep(sex[i], nodes)} # age of each actor is repeated over entire COLUMN of matrix
-sex_receiving
+head(sex_receiving)
 ```
 
 ```{r}
