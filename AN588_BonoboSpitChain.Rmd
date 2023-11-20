@@ -79,13 +79,16 @@ How we set-up and manage the social network data can impact the ease with which 
 ### Adjacency matrix
 A matrix used for social network analysis is called a **sociomatrix** or an **adjacency matrix**. They are square matrices. For directed networks, rows indicate the starting node, and columns indicate the receiving node. Undirected networks are symmetric matrices around the diagonal. For un-weighted networks, the cells contain a 1, for the presence of an edge and a 0 for the absence of an edge between individuals. For weighted networks, the cells can contain the edge-weights instead of 1s and 0s.
 ```{r adjacency matrix fig, echo = FALSE}
-knitr::include_graphics("https://www.researchgate.net/publication/327368736/figure/fig1/AS:666036512768011@1535806887938/Representation-of-Social-Networks-using-a-a-Graph-or-b-Matrix.png")
-# trying to find a pic of matrix and edge list here
+knitr::include_graphics("Adjacency_matrix_figure.png")
 ```
 
 
 ### Edge list
 Alternatively, we can also represent network data as a columned list, called an **edge list**. Each row of the list represents one edge (one relationship between individuals). In directed data, the first column names the sender of the edge and the second column names the receiver. In undirected data, it does not matter which node is listed first. For weighted data, a third column contains a numeric value for each tie.
+
+```{r edge list fig, echo = FALSE, out.width="25%"}
+knitr::include_graphics("Edgelist_figure.png")
+```
 
 **Is our bonobo dataset structured as an edge list or adjacency matrix?**
 
@@ -340,7 +343,7 @@ sp_contact_net %e% "time" <- spmonkey_el[spmonkey_el$Beh == "In contact",]$Mins
 
 Now that we have loaded, cleaned, and visualized our spider monkey dataset, we can analyze it via QAP regressions! 
 
-```{r, echo = FALSE, out.width="75%"}
+```{r twilight fig, echo = FALSE, out.width="75%"}
 knitr::include_graphics("https://media.tenor.com/OvqVvPSkfEcAAAAd/you-better-hold-on-tight-spider-monkey-edward-cullen.gif")
 ```
 
@@ -392,7 +395,7 @@ mrqap <- netlm(sp_groom_net, # response variable is a network object with a weig
 summary(mrqap)
 ```
 
-## Logistic regression
+### Logistic regression
 **Does reproductive status predict mating behavior (number of ties in mating social network)?**
 ```{r}
 nodes <- 16 # the number of nodes in the data set
