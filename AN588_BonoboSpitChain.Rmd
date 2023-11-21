@@ -94,6 +94,8 @@ Alternatively, we can also represent network data as a columned list, called an 
 knitr::include_graphics("Edgelist_figure.png")
 ```
 
+An edge list is usually easier for a person to interpret. However, it is important to be familiar with adjacency matrices as they are the format used to conduct mathematical operations in various social network analyses.
+
 **Is our bonobo dataset structured as an edge list or adjacency matrix?**
 
 ### Node-Level Variables
@@ -171,12 +173,12 @@ qap_cor <- qaptest(list(bonobo_ggr_net, bonobo_groom_net), # include both networ
                 gcor, # the function you're using is correlation between networks (gcor) 
                 g1=1, # use first graph in the list (in this case the GG rubbing network)
                 g2=2, # use second graph in the list (in this case the groom network)
-                reps = 1000) # number of permutations to run
+                reps = 1000) # number of permutations to run (1000 is actually the default)
 summary(qap_cor)
 ```
-Under "Test Diagnostics", the test value represents the correlation coefficient between grooming and GG rubbing networks. This is interpreted at the level of the dyad, pairs who groom each other are likely not related to pairs who GG rub with one another. We previously calculated this using the gcor() function.
+Under "Test Diagnostics", the test value represents the correlation coefficient between grooming and GG rubbing networks. This is interpreted at the level of the dyad, pairs who groom each other are likely not correlated to pairs who GG rub with one another. We previously calculated this using the gcor() function. A positive value indicates that networks positively correlate. In other words, one network has ties where the other also does. A negative value indicates that networks negatively correlate. In other words, one network has ties whether the other does not.
 
-Under "Estimated p-values", we find statistics that tell us about how this observed correlation compares to what the correlation looks like when we randomly permute one of our networks. Note that these are both one-tailed p-values! We can see that our p-values are greater than 0.05, meaning we have evidence to fail to reject our null hypothesis. There is no significant correlation between grooming and GG rubbing networks.
+Under "Estimated p-values", we find statistics that tell us about how this observed correlation compares to what the correlation looks like when we randomly permute one of our networks. Note that these are both one-tailed p-values! One tests whether the correlation is higher than expected by random chance (p(f(perm) >= f(d))), and the other tests whether the correlation is lower than expected by random chance (p(f(perm) <= f(d)). We can see that our p-values are greater than 0.05, meaning we have evidence to fail to reject our null hypothesis. There is no significant correlation between grooming and GG rubbing networks.
 
 We can also visualize the "Distribution Summary" using the plot() function.
 
@@ -184,7 +186,7 @@ We can also visualize the "Distribution Summary" using the plot() function.
 plot(qap_cor)
 ```
 
-The dotted line gives us the correlation among the observed networks. The curve shows the distribution of correlations across permutated networks. Our plot shows that across 1000 replications, very rarely do we see any correlation between grooming and GG rubbing networks in this bonobo population. The correlation tends to center around 0.
+The dotted line gives us the correlation among the observed networks. The curve shows the distribution of correlations across the permuted networks. The permutations are random, so they are expected to form a normal distribution in which most of the permutations have a correlation of 0. The correlation of our observed networks falls within the typical amount of correlation expected from random networks.
 
 ## 2. Linear/Multiple regression
 Linear regression QAPs test the extent to which predictor variables are affecting edge weights. Recall that our predictor variables are node attributes. 
@@ -240,6 +242,10 @@ lrqap2 <- netlm(bonobo_ggr_net, # response variable is a network object with a w
                 list(rank_receiving)) # list of predictor variables as network or matrix objects
 summary(lrqap2)
 ```
+```{r}
+plot(lrqap2)
+```
+
 
 Just like with the actors/senders, let's imagine that rank is on the x axis and edge weight is on the y axis. Again, we see a negative slope, though this one is even less steep at -0.07247427. The two tailed test p value for this variable is not significant. This model is explaining almost 0% of the variability, which means this model is really not a good fit for the residuals. We can imagine the points scattered far away from the line. The F-statistic p-value is too high to be significant at 0.3249, which is even higher than the sender p-value. Rank of receiver does not significantly explain the edge weight of GG rubbing interactions. 
 
@@ -270,7 +276,7 @@ Similar to the multiple regression, we must first create a matrix that shows the
 
 ```{r matrix age bonobo}
 nodes <- length(bonobo_attribute$actor) # number of nodes in the data set
-age <- bonobo_ggr_net %v% "rank" # a vector of the node-level variable we're interested in
+age <- bonobo_ggr_net %v% "age" # a vector of the node-level variable we're interested in
 
 age_sending <- matrix(data = NA, nrow = nodes, ncol = nodes) #create empty matrix to be filled
 age_receiving <- matrix(data = NA, nrow = nodes, ncol = nodes)
@@ -297,11 +303,14 @@ summary(logqap)
 ```
 As a reminder, we are testing whether age affects the likelihood of giving and receiving GG rubbing. In the output above, x1 represents the first variable in the model (age_receiving), and x2 represents the second variable in the model (age_sending).
 
-There is a significantly negative relationship between age of sender and likelihood of number of edges in the GG rubbing network. In other words, for every year older, a female bonobo has -0.6817886 fewer GG rubbing edges for initiating. They are less likely to initiate GG rubbing as they get older. However, we cannot say anything about getting older and receiving GG rubbing events because the relationship was not significant for the two tailed hypothesis. Though we can note the relationship is also negative for this. The Chi-squared goodness of fit test p-value is significant.
+Because they hypothesis we were testing was whether there is any relationship between age and sending and receiving ties, we will use the two-tailed p-valued in the column labeled Pr(>=|b|). There are no significant relationships between either predictor variable and the presence of ties in the network. 
 
-A follow up question given these results could be: are older bonobos overall less likely to participate in GG rubbing? We could answer this with a linear regression QAP.
+For the sake of practicing, we will interpret the slopes anyway. The first column, "Estimate" is the log odds which is difficult to interpret. Think of it as a tendency to form or not form ties. The log odds for age_receiving is -0.03708264, so there is an increasing tendency with age to not receive ties. The second column, Exp(b), gives odds ratios instead, which are easier to understand. The odds ratio gives the likelihood of a tie to form (or not form) under one condition in contrast to another condition. The odds ratio of age_receiving is c. So for each year older a female bonobo is, she is 0.9635965 times as likely to receive any given tie compared to if she was a year younger. More generally, they are less likely to receive GG rubbing as they get older. The same can be said for sending ties as they get older. However, we cannot actually say this, as the relationships are not significant. The Chi-squared goodness of fit test p-value is significant.
+
+A follow up question given these results could be: are older bonobos less likely to participate in GG rubbing as often as younger bonobos? We could answer this with a linear regression QAP.
 
 Our bonobo data was a little anti-climactic. But sometimes, that's the nature of small sample primatology work. To make things a little more exciting, let's run the three QAPs again with some spider monkey data.
+
 
 # Spider Monkey Social Networks
 The spider monkeys in this data set are *Ateles hybridus* or brown spider monkeys. They are a group living primate with fission-fusion dynamics, similar to bonobos. However, spider monkeys are platyrrhines whereas bonobos are apes. The original intent of this data set and what it was published for was to test how parasites moved between individuals depending on different levels of contact. That leaves us with a rich dataset of networks and attributes that we can work with!
@@ -427,10 +436,9 @@ qap_cor <- qaptest(list(sp_groom_net, sp_contact_net), # include both network ob
 summary(qap_cor)
 plot(qap_cor)
 ```
-
 **How do you interpret this?**
 **Are these highly correlated networks?** 
-**Why is the upper tailed test significant and not the lower tailed test?**
+**Which test (upper or lower tailed) is significant?**
 
 ### Linear regression
 
