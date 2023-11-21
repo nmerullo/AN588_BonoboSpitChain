@@ -232,7 +232,7 @@ rank_receiving
 ```
 
 Now we can run our linear regression! First we are asking:
-**Does rank affect how many times bonobos GG rubbed others (the weight of the edges they sent)?**
+**Does rank affect how many times bonobos GG rubbed with each others (the weight of the edges they sent)?**
 Our null hypothesis is that rank does not affect how many times bonobos GG rub others (both high and low).
 
 ```{r linear regression qap bonobo 1}
@@ -416,6 +416,8 @@ sp_contact_net %e% "time" <- spmonkey_el[spmonkey_el$Beh == "In contact",]$Mins
 
 **How was this process different from the bonobo data loading, cleaning, and visualizing process? How do these plots compare to the bonobo data? Do you think we could make any predictions based on just looking at these plots?**
 
+**Can we manipulate the plots so that the node colors are different based on relevant variables like sex? Can we benefit from showing edge weights in the spider monkey plots as well?**
+
 Now that we have loaded, cleaned, and visualized our spider monkey dataset, we can analyze it via QAP regressions! 
 
 ```{r twilight fig, echo = FALSE, out.width="75%"}
@@ -449,7 +451,9 @@ plot(qap_cor)
 ```
 **How do you interpret this?**
 **Are these highly correlated networks?** 
-**Which test (upper or lower tailed) is significant?**
+**Which test (upper or lower tailed) is significant?** 
+
+**It looks like the correlation between the grooming and contact networks is significant. Test Value (f(d)) is 0.362977, which is significant for p(f(perm) >= f(d)). This means, that the dyads that groomed each other were also more likely to be in contact with each other.**
 
 ### Linear regression
 
@@ -489,11 +493,13 @@ lrqap.sp <- netlm(sp_groom_net, # response variable is a network object with a w
 summary(lrqap.sp)
 ```
 
-- **Does age have a positive or negative relationship with amoung ot time spent grooming?**
-- **For each unit (in this case life history stage) of age increase, how much more or less likely is a spider monkey to groom?**
+- **Does age have a positive or negative relationship with amount of time spent grooming?**
+- **For each unit (in this case life history stage) of age increase, how much more or less likely is a spider monkey to groom?** 
 - **Is the relationship between age and grooming significant?** 
 - **How much variability in the data does this model explain?**
 - **Is it a good fit model? Is this is a significant effect? How can you tell?**
+
+**The b1 coefficient is 0.24. For every 1 unit increase in age category, the individuals are likely to have 0.24 times greater edge weights for each grooming tie they send.**
 
 ### Logistic regression
 Recall that for logistic regression we are testing the presence or absence of ties based on the predictor variable (node attribute). Here we chose to look at the effect of sex of individuals on the presence or absence of ties in the play network.
