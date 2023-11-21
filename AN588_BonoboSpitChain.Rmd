@@ -115,8 +115,9 @@ bonobo_groom_net<-as.network.data.frame(bonobo_groom_edgelist) # turns grooming 
 
 bonobo_ggr_net %v% "rank" <- bonobo_attribute$rank #adds rank variable to GG rubbing network as a vertex attribute
 bonobo_ggr_net %v% "age" <- bonobo_attribute$age #adds age variable to GG rubbing network as a vertex attribute
+bonobo_ggr_net %v% "group" <- bonobo_attribute$group #adds group variable to GG rubbing network as a vertex attribute
 bonobo_groom_net %v% "rank" <- bonobo_attribute$rank #adds rank variable to grooming network as a vertex attribute
-bonobo_groom_net %v% "age" <- bonobo_attribute$age #adds age variable to grooming network as a vertex attribute
+bonobo_groom_net %v% "group" <- bonobo_attribute$group #adds group variable to grooming network as a vertex attribute
 ```
 
 Now that everything it set up, we can use summary() to look at our networks. For example, let's take a look at the bonobo grooming network. 
@@ -319,6 +320,29 @@ Because they hypothesis we were testing was whether there is any relationship be
 For the sake of practicing, we will interpret the slopes anyway. The first column, "Estimate" is the log odds which is difficult to interpret. Think of it as a tendency to form or not form ties. The log odds for age_receiving is -0.03708264, so there is an increasing tendency with age to not receive ties. The second column, Exp(b), gives odds ratios instead, which are easier to understand. The odds ratio gives the likelihood of a tie to form (or not form) under one condition in contrast to another condition. The odds ratio of age_receiving is c. So for each year older a female bonobo is, she is 0.9635965 times as likely to receive any given tie compared to if she was a year younger. More generally, they are less likely to receive GG rubbing as they get older. The same can be said for sending ties as they get older. However, we cannot actually say this, as the relationships are not significant. The Chi-squared goodness of fit test p-value is significant.
 
 A follow up question given these results could be: are older bonobos less likely to participate in GG rubbing as often as younger bonobos? We could answer this with a linear regression QAP.
+
+## 4. Homophily
+
+You may have noticed when we visualized the bonobo data that the individuals sorted into two groups that did not have any observed interactions. The original dataset actually used bonobos living in two separate groups. While bonobos sometimes interact with conspecifics in other groups, no such interactions were observed in this data. Therefore, belonging to the same group appears to be an important predictor for whether a dyad will have an interaction. This may be obscuring other trends when we do not account for group belonging in our models.
+
+We can account for the bonobos' group belonging including a variable that accounts for homophily, the tendency of actors to form edges with others who are similar to them in some way. To do this we need to create a group homophily variable as a binary adjacency matrix. In this matrix, "1" or "TRUE" will indicate that a sender and receiver share the same group value. "0" or "FALSE" will indicate that they do not share the same group value.
+
+The function outer() will take two vectors (or two of the same vector in this case) and create a new matrix based on a specified function applied to every combination of terms in the vector. The function "==" tells outer() to create a matrix that reports TRUE/FALSE for every combination of terms.
+```{r}
+group <- bonobo_ggr_net %v% "group" # first create a vector giving the group of each node
+group_homophily <- outer(group, group, FUN = "==") # Shows us whether each combination of terms in the vector group is the same (TRUE) or different (FALSE)
+                                                 
+group_homophily 
+```
+For example, bonobos 1 and 2 belong to different groups, so cell [1,2] contains FALSE. We can now use this matrix as a predictor variable of group homophily in our logistic model from earlier.
+
+```{r}
+logqap2 <- netlm(bonobo_ggr_net,
+                  list(rank_sending, rank_receiving, group_homophily),
+                  reps = 1000)
+summary(logqap2)
+```
+
 
 Our bonobo data was a little anti-climactic. But sometimes, that's the nature of small sample primatology work. To make things a little more exciting, let's run the three QAPs again with some spider monkey data.
 
