@@ -256,9 +256,6 @@ lrqap2 <- netlm(bonobo_ggr_net, # response variable is a network object with a w
                 list(rank_receiving)) # list of predictor variables as network or matrix objects
 summary(lrqap2)
 ```
-```{r}
-plot(lrqap2)
-```
 
 
 Just like with the actors/senders, let's imagine that rank is on the x axis and edge weight is on the y axis. Again, we see a negative slope, though this one is even less steep at -0.07247427. The two tailed test p value for this variable is not significant. This model is explaining almost 0% of the variability, which means this model is really not a good fit for the residuals. We can imagine the points scattered far away from the line. The F-statistic p-value is too high to be significant at 0.3249, which is even higher than the sender p-value. Rank of receiver does not significantly explain the edge weight of GG rubbing interactions. 
