@@ -55,11 +55,9 @@ knitr::include_graphics("https://news.asu.edu/sites/default/files/bonobo_kokolop
 Here are the packages we will be using:
 ```{r packages, message=FALSE}
 library(statnet)
-library(igraph)
-library(intergraph)
 ```
 
-{igraph} and {statnet} are two of the most commonly used packages for social network analyses. Both include built-in functions that can plot networks and answer almost every beginner-level question about a given network. However, there may be some functions that are present in one package but not the other (or just work better). So, {intergraph} is another useful package that helps users transition between {igraph} and {statnet}. 
+{igraph} and {statnet} are two of the most commonly used packages for social network analyses. Both include built-in functions that can plot networks and answer almost every beginner-level question about a given network. However, there may be some functions that are present in one package but not the other (or just work better). So, {intergraph} is another useful package that helps users transition between {igraph} and {statnet}. For this module, we will only need {statnet}.
 
 # Understanding the structure of social network data
 
