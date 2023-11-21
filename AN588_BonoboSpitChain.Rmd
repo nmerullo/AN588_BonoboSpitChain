@@ -132,13 +132,12 @@ We can visualize social networks by creating network objects with {statnet}. Not
 ```{r visualize}
 par(mfrow = c(1, 2))
 plot(bonobo_ggr_net, label = "vertex.names", main="GG rubbing") 
+box(col = "black")
 
 # this plot looks great, but can we make it more informative? Let's see if we can add the edge weights and color the nodes by rank: 
 
-plot(bonobo_ggr_net, label = "vertex.names", main="GG rubbing")
-box(col = "black")
-
 # this will enable us to have an intuitive understanding of how much individuals interact with one another based on their rankings. 
+
 plot(bonobo_ggr_net, vertex.col = "rank", label = "vertex.names", main="GG rubbing", vertex.cex = 2, edge.label = "GGR.Weight", edge.label.cex = 0.6)
 box(col = "black")
 bonobo_ggr_net$rank
