@@ -220,7 +220,7 @@ rank_receiving
 
 Now we can run our linear regression! First we are asking:
 **Does rank affect how many times bonobos GG rubbed others (the weight of the edges they sent)?**
-Null hypothesis is that rank does not affect how many times bonobods GG rub others (both high and low)
+Our null hypothesis is that rank does not affect how many times bonobos GG rub others (both high and low).
 
 ```{r linear regression qap bonobo 1}
 lrqap <- netlm(bonobo_ggr_net, # response variable is a network object with a weighted adjacency matrix
@@ -233,7 +233,7 @@ To interpret this we can imagine the x axis being rank and the y axis being edge
 Now let's look at the receivers.
 
 **Does rank affect how many times bonobos received GG rubbing from others (the weight of the edges they receive)?**
-The null hypothesis is the same as above, that rank of receiver does not affect the tnumber of times they are GG rubbed with.
+The null hypothesis is the same as above, that rank of receiver does not affect the number of times they are GG rubbed with.
 
 ```{r linear regression qap bonobo 2}
 lrqap2 <- netlm(bonobo_ggr_net, # response variable is a network object with a weighted adjacency matrix
@@ -243,11 +243,11 @@ summary(lrqap2)
 
 Just like with the actors/senders, let's imagine that rank is on the x axis and edge weight is on the y axis. Again, we see a negative slope, though this one is even less steep at -0.07247427. The two tailed test p value for this variable is not significant. This model is explaining almost 0% of the variability, which means this model is really not a good fit for the residuals. We can imagine the points scattered far away from the line. The F-statistic p-value is too high to be significant at 0.3249, which is even higher than the sender p-value. Rank of receiver does not significantly explain the edge weight of GG rubbing interactions. 
 
-So we fail to reject the null hypothesis in this question too. But that begs the question, **if rank is not influencing the edge weight then is there some other attribute that is?**
+So we fail to reject the null hypothesis in this question too. But that begs the question, **if rank is not influencing the edge weight, then is there some other attribute that is?**
 
-We can include multiple predictor variables! We can also use another network as a predictor variable! By doing so, we are conducting a multiple regression QAP. For example, we can ask:
+What if we included multiple predictor variables? We can add another network as a predictor variable! By doing so, we are conducting a multiple regression QAP. For example, we can now ask:
 **Do sender rank and grooming relationships predict the number of times bonobos GG rubbed in the network?**
-The null hypothesis is that neither rank of of the actor nor grooming relationships affect the number of times bonobos initiate GG rubbing (two tailed test).
+The null hypothesis is that neither rank of the actor nor grooming relationships affect the number of times bonobos initiate GG rubbing (two tailed test).
 
 ```{r multiple regression qap bonobo 3}
 mrqap <- netlm(bonobo_ggr_net, # response variable is a network object with a weighted adjacency matrix
@@ -297,14 +297,14 @@ summary(logqap)
 ```
 As a reminder, we are testing whether age affects the likelihood of giving and receiving GG rubbing. In the output above, x1 represents the first variable in the model (age_receiving), and x2 represents the second variable in the model (age_sending).
 
-There is a significantly negative relationship between age of sender and likelihood of number of edges in the GG rubbing network. In other words, for every year older, a female bonobo has -0.6817886 fewer GG rubbing edges for initiating. They are less likely to initiate GG rubbing as they get older. However, we cannot say anything about getting older and receiving GG rubbing events because the relationship was not significant for the two tailed hypothesis. Though we can note the relationship is also negative for this. The Chi-squared goodness of fit test p-value is signficant.
+There is a significantly negative relationship between age of sender and likelihood of number of edges in the GG rubbing network. In other words, for every year older, a female bonobo has -0.6817886 fewer GG rubbing edges for initiating. They are less likely to initiate GG rubbing as they get older. However, we cannot say anything about getting older and receiving GG rubbing events because the relationship was not significant for the two tailed hypothesis. Though we can note the relationship is also negative for this. The Chi-squared goodness of fit test p-value is significant.
 
-A follow up question given these results could be are older bonobos overall less likely to participate in GG rubbing? We could answer this with a linear regression QAP.
+A follow up question given these results could be: are older bonobos overall less likely to participate in GG rubbing? We could answer this with a linear regression QAP.
 
 Our bonobo data was a little anti-climactic. But sometimes, that's the nature of small sample primatology work. To make things a little more exciting, let's run the three QAPs again with some spider monkey data.
 
 # Spider Monkey Social Networks
-The spider monkeys in this data set are *Ateles hybridus* or brown spider monkeys. They are a group living primate with fission-fusion dynamics, similar to bonobos. Spider monkeys, however are a new world monkey. The original intent of this data set and what it was published for was to test how parasites moved between individuals depending on different levels of contact. That leaves us with a rich dataset of networks and attributes.
+The spider monkeys in this data set are *Ateles hybridus* or brown spider monkeys. They are a group living primate with fission-fusion dynamics, similar to bonobos. However, spider monkeys are platyrrhines whereas bonobos are apes. The original intent of this data set and what it was published for was to test how parasites moved between individuals depending on different levels of contact. That leaves us with a rich dataset of networks and attributes that we can work with!
 ```{r, echo = FALSE, fig.align = 'center', out.width="75%"}
 knitr::include_graphics("https://www.theanimalreader.com/wp-content/uploads/2023/08/spider-monkeys.jpg")
 ```
@@ -412,7 +412,7 @@ We need to use two networks with the same number of nodes so we chose to ask a q
 
 **Does grooming relationships correlate with contact relationships in spider monkeys?**
 
-What is our null hypothesis? Alternative hypothesis?
+**What is our null hypothesis? Alternative hypothesis?**
 
 ```{r spider monkey correlation qap}
 # get the correlation value
@@ -434,11 +434,11 @@ plot(qap_cor)
 
 ### Linear regression
 
-Recall that in linear regression for social network analysis involves identifying an independent variable (node attributes) to test its effect on the edge weight of the response variable (the social network). For the spider monkeys, we have multiple options for both node attributes and social networks. We chose to look at age and time spent grooming. Before we can get into the analysis, we must first make the matrices for senders and receivers of grooming like we did for the bonobos.
+Recall that in linear regression for social network analysis involves identifying an independent variable (node attributes) to test its effect on the edge weight of the response variable (the social network). For the spider monkeys, we have multiple options for both node attributes and social networks. We chose to look at age and time spent grooming. 
 
 **Is age category predictive of time spent in grooming behavior within dyads of spider monkeys?**
 
-NOTE: Senders are represented by ROWS in the matrices
+But before we can get into the analysis, we must first make the matrices for senders and receivers of grooming like we did for the bonobos. As a reminder, senders are represented by ROWS in the matrices.
 
 ```{r spmonk-lr-matrix1}
 nodes <- length(sp_attr$ID) # the number of nodes in the data set
@@ -450,7 +450,8 @@ for (i in 1:nodes){ # for 1 through the number of nodes in the data set
 age_sending[i,] <- rep(age[i], nodes)} # The age of each actor is repeated over entire ROW of matrix
 head(age_sending)
 ```
-NOTE: Receivers are represented by COLUMNS in the matrices
+
+Receivers are represented by COLUMNS in the matrices
 
 ```{r spmonk-lr-matrix2}
 age_receiving <- matrix(data = NA, nrow = nodes, ncol = nodes)
@@ -469,20 +470,18 @@ lrqap.sp <- netlm(sp_groom_net, # response variable is a network object with a w
 summary(lrqap.sp)
 ```
 
-**Does age have a positive or negative relationship with amoung ot time spent grooming?**
-**For each unit (in this case life history stage) of age increase, how much more or less likely is a spider monkey to groom?**
-**Is the relationship between age and grooming significant?** 
-**How much variability in the data does this model explain?**
-**Is it a good fit model? Is this is a significant effect? How can you tell?**
+- **Does age have a positive or negative relationship with amoung ot time spent grooming?**
+- **For each unit (in this case life history stage) of age increase, how much more or less likely is a spider monkey to groom?**
+- **Is the relationship between age and grooming significant?** 
+- **How much variability in the data does this model explain?**
+- **Is it a good fit model? Is this is a significant effect? How can you tell?**
 
 ### Logistic regression
 Recall that for logistic regression we are testing the presence or absence of ties based on the predictor variable (node attribute). Here we chose to look at the effect of sex of individuals on the presence or absence of ties in the play network.
 
 **Does sex predict play behavior (number of ties in play social network)?** In other words, do males or females play more?
 
-Again, we make the matrices for the variables for both sending and receiving individuals.
-
-NOTE: Senders are represented by ROWS in the matrices
+Again, we make the matrices for the variables for both sending (rows) and receiving (columns) individuals.
 
 ```{r spmonk-logr-matrix1}
 nodes <- 16 # the number of nodes in the data set
@@ -491,17 +490,15 @@ sex <- sp_play_net_unweighted %v% "sex" # a vector of the node-level variable we
 sex_sending <- matrix(data = NA, nrow = nodes, ncol = nodes) #create an empty matrix to be filled
 
 for (i in 1:nodes){ # for 1 through the number of nodes in the data set
-sex_sending[i,] <- rep(sex[i], nodes)} # age of each actor is repeated over entire ROW of matrix
+sex_sending[i,] <- rep(sex[i], nodes)} # sex of each actor repeated over entire ROW of matrix
 head(sex_sending)
 ```
-
-NOTE: Receivers are represented by COLUMNS in the matrices
 
 ```{r spmonk-logr-matrix2}
 sex_receiving <- matrix(data = NA, nrow = nodes, ncol = nodes)
 
 for (i in 1:nodes){ # for 1 through the number of nodes in the data set
-sex_receiving[,i] <- rep(sex[i], nodes)} # age of each actor is repeated over entire COLUMN of matrix
+sex_receiving[,i] <- rep(sex[i], nodes)} # sex of each actor repeated over entire COLUMN of matrix
 head(sex_receiving)
 ```
 
