@@ -128,32 +128,31 @@ summary(bonobo_ggr_net)
 ## Visualizing social network data
  
 We can visualize social networks by creating network objects with {statnet}. Note the arrows indicating directionality!
+
+The plot on the left looks great, but we can make it more informative by adding edge weights and color the nodes by rank. This will enable us to have an intuitive understanding of how much individuals interact with one another based on their rankings! 
 ```{r visualize}
 par(mfrow = c(1, 2))
-plot(bonobo_ggr_net, label = "vertex.names", main="GG rubbing") 
+plot(bonobo_ggr_net, label = "vertex.names", main="GG rubbing") # left plot
 box(col = "black")
 
-# this plot looks great, but can we make it more informative? Let's see if we can add the edge weights and color the nodes by rank: 
-
-# this will enable us to have an intuitive understanding of how much individuals interact with one another based on their rankings. 
-
-plot(bonobo_ggr_net, vertex.col = "rank", label = "vertex.names", main="GG rubbing", vertex.cex = 2, edge.label = "GGR.Weight", edge.label.cex = 0.6)
+plot(bonobo_ggr_net, vertex.col = "rank", label = "vertex.names", main="GG rubbing", vertex.cex = 2, edge.label = "GGR.Weight", edge.label.cex = 0.6) # right plot
 box(col = "black")
-bonobo_ggr_net$rank
+```
 
-
-plot(bonobo_groom_net, label = "vertex.names", main="Grooming")
+We can also do the same for the grooming network.
+```{r visualize2}
+par(mfrow = c(1, 2))
+plot(bonobo_groom_net, label = "vertex.names", main="Grooming") 
 box(col = "black")
 
-#with more information
 plot(bonobo_groom_net, vertex.col = "rank", label = "vertex.names", main="Grooming", vertex.cex = 2, edge.label = "weight", edge.label.cex = 0.6)
 box(col = "black")
 ```
 
-**How would you describe these two plots? What stands out? What's different?**
+**How would you describe the grooming and GG rubbing networks? What stands out? What's different?**
 
 # Quadratic Assignment Procedure (QAP)
-When analyzing social network data, we want to know to what degree our variables impact the formation of a particular network organization. Our **independent variables** or predictor variables are node level variables (e.g. age) or similarity between node level variables (e.g. whether pairs belong to the same age category). Our **dependent variable** is the organization of edges in the network. 
+When analyzing social network data, we want to know to what degree our variables impact the formation of a particular network organization. Our **independent variables** or predictor variables are node level variables (e.g. age) or similarity between node level variables (e.g. whether pairs belong to the same age category). Our **dependent variable** or response variable is the organization of edges in the network. 
 
 We cannot use standard OLS regressions to analyze pair characteristics and the presence of edges between pairs because it violates the assumption that observations are independent. For example, observations A-B, A-C, and A-D are not independent because they all involve individual A. Or if one bonobo is GG rubbing with 5 other bonobos, those 5 other bonobos may also be GG rubbing with each other. 
 Quadratic assignment procedure (QAP) addresses this issue of non-independence.
@@ -182,6 +181,7 @@ gcor(bonobo_ggr_net, bonobo_groom_net)
 
 These networks don't seem very correlated but let's test for significance anyways. The qaptest() function uses Monte Carlo simulations of likelihood quantiles to test arbitrary graph-level statistics against a QAP null hypothesis.
 ```{r correlation qap bonobo2}
+set.seed(123)
 qap_cor <- qaptest(list(bonobo_ggr_net, bonobo_groom_net), # include both network objects in a list
                 gcor, # the function you're using is correlation between networks (gcor) 
                 g1=1, # use first graph in the list (in this case the GG rubbing network)
@@ -238,12 +238,13 @@ Now we can run our linear regression! First we are asking:
 Our null hypothesis is that rank does not affect how many times bonobos GG rub others (both high and low).
 
 ```{r linear regression qap bonobo 1}
+set.seed(123)
 lrqap <- netlm(bonobo_ggr_net, # response variable is a network object with a weighted adjacency matrix
                 list(rank_sending)) # list of predictor variables as network or matrix objects
 summary(lrqap)
 ```
 
-To interpret this we can imagine the x axis being rank and the y axis being edge weight. For every unit increase in rank, edge weights are going **down** 0.1161796 (the estimate of x1 in the above coefficients). This relationship is slightly significant at 0.032 on the two tailed test. However, if we look at our adjusted r^2 value, our model is only explaining ~4% of the variability. And our F-statistic p value is too high to be significant at 0.111. Taken together, we can say that the rank of sender is not significantly explaining the edge weight of GG rubbing interactions.
+To interpret this we can imagine the x axis being rank and the y axis being edge weight. For every unit increase in rank, edge weights are going **down** 0.1161796 (the estimate of x1 in the above coefficients). This relationship is slightly significant at 0.021 on the two tailed test. However, if we look at our adjusted r^2 value, our model is only explaining ~4% of the variability. And our F-statistic p value is too high to be significant at 0.111. Taken together, we can say that the rank of sender is not significantly explaining the edge weight of GG rubbing interactions.
 
 Now let's look at the receivers.
 
@@ -251,6 +252,7 @@ Now let's look at the receivers.
 The null hypothesis is the same as above, that rank of receiver does not affect the number of times they are GG rubbed with.
 
 ```{r linear regression qap bonobo 2}
+set.seed(123)
 lrqap2 <- netlm(bonobo_ggr_net, # response variable is a network object with a weighted adjacency matrix
                 list(rank_receiving)) # list of predictor variables as network or matrix objects
 summary(lrqap2)
@@ -261,11 +263,11 @@ Just like with the actors/senders, let's imagine that rank is on the x axis and 
 
 So we fail to reject the null hypothesis in this question too. But that begs the question, **if rank is not influencing the edge weight, then is there some other attribute that is?**
 
-What if we included multiple predictor variables? We can add another network as a predictor variable! By doing so, we are conducting a multiple regression QAP. For example, we can now ask:
-**Do sender rank and grooming relationships predict the number of times bonobos GG rubbed in the network?**
+What if we included multiple predictor variables? We can add another network as a predictor variable! By doing so, we are conducting a multiple regression QAP. For example, we can now ask: **Do sender rank and grooming relationships predict the number of times bonobos GG rubbed in the network?**
 The null hypothesis is that neither rank of the actor nor grooming relationships affect the number of times bonobos initiate GG rubbing (two tailed test).
 
 ```{r multiple regression qap bonobo 3}
+set.seed(123)
 mrqap <- netlm(bonobo_ggr_net, # response variable is a network object with a weighted adjacency matrix
                 list(rank_sending, rank_receiving, bonobo_groom_net)) # list of all predictor variables as network or matrix objects
 
@@ -276,21 +278,18 @@ summary(mrqap)
 **Is this model a better fit than the others? How can we tell?**
 
 ## 3. Logistic regression
-Logistic regression QAPs test the extent to which independent variables are affecting the presence or absence of edges, but not the weight of those edges. If you have a network with binary ties, we can use this regression method to predict ties in the outcome network (response variable) <br>
-Using our bonobo dataset, we can ask: **Does higher rank make an individual more or less likely to G-G rub with other individuals?** <br>
-In this example, our GG rubbing network is the response variable while age is our predictor variable.
+Logistic regression QAPs test the extent to which independent variables are affecting the presence or absence of edges, but not the weight of those edges. If you have a network with binary ties, we can use this regression method to predict ties in the outcome network (response variable). Using our bonobo dataset, we can ask: **Does higher rank make an individual more or less likely to G-G rub with other individuals?** 
 
-If you imagine rank (as the predictor variable) on the x axis, for every unit of rank increase for a bonobo, are they more likely to GG rub with more individuals? Will an older individual have more ties on the social network?
+In this example, our GG rubbing network is the response variable while age is our predictor variable. If you imagine rank (as the predictor variable) on the x axis, for every unit of rank increase for a bonobo, are they more likely to GG rub with more individuals? Will an older individual have more ties on the social network?
 
-If we were using a different predictor variable, then we would need to create new matrices for senders and receivers. However, we are using the same one as before (rank) so we can skip that step this time.
-
-Now we can run our logistic regression! 
+If we were using a different predictor variable, then we would need to create new matrices for senders and receivers. However, we are using the same one as before (rank) so we can skip that step this time. Now we can run our logistic regression! 
 
 **What is our null hypothesis for this question?**
 
 The netlogit() function performs a logistic regression of the network variable for the response variable (bonobo_ggr_net) on the network variables in the predictor variables (age_receiving and age_sending). The resulting fits and coefficients are tested against the null hypothesis.
 
 ```{r logistic qap bonobo}
+set.seed(123)
 logqap <- netlogit(bonobo_ggr_net, # response variable is a network object
                   list(rank_receiving, rank_sending), # list of all predictor variables as network or matrix objects
                   reps = 1000) # number of draws for quantile estimation, 1000 reps is the default
@@ -315,18 +314,20 @@ The function outer() will take two vectors (or two of the same vector in this ca
 
 ```{r}
 group <- bonobo_ggr_net %v% "group" # first create a vector giving the group of each node
-group_homophily <- outer(group, group, FUN = "==") # Shows us whether each combination of terms in the vector group is the same (TRUE) or different (FALSE)
-                                                 
+group_homophily <- outer(group, group, FUN = "==") # shows us whether each combination of terms in vector group is the same (TRUE) or different (FALSE)
 group_homophily 
 ```
 For example, bonobos 1 and 2 belong to different groups, so cell [1,2] contains FALSE. We can now use this matrix as a predictor variable of group homophily in our logistic model from earlier.
 
 ```{r}
+set.seed(123)
 logqap2 <- netlm(bonobo_ggr_net,
                   list(rank_sending, rank_receiving, group_homophily),
                   reps = 1000)
 summary(logqap2)
 ```
+
+[describe output]
 
 Our bonobo data was a little anti-climactic. But sometimes, that's the nature of small sample primatology work. To make things a little more exciting, let's run the three QAPs again with some spider monkey data.
 
@@ -437,13 +438,13 @@ knitr::include_graphics("https://media.tenor.com/OvqVvPSkfEcAAAAd/you-better-hol
 
 ### Correlation
 
-We need to use two networks with the same number of nodes so we chose to ask a question about grooming and contact.
-
-**Does grooming relationships correlate with contact relationships in spider monkeys?**
+We need to use two networks with the same number of nodes so we chose to ask a question about grooming and contact: **Does grooming relationships correlate with contact relationships in spider monkeys?**
 
 **What is our null hypothesis? Alternative hypothesis?**
 
 ```{r spider monkey correlation qap}
+set.seed(123)
+
 # get the correlation value
 gcor(sp_groom_net, sp_contact_net)
 
@@ -457,11 +458,9 @@ summary(qap_cor)
 plot(qap_cor)
 ```
 
-**How do you interpret this?**
-**Are these highly correlated networks?** 
-**Which test (upper or lower tailed) is significant?** 
+**How do you interpret this? Are these highly correlated networks? Which test (upper or lower tailed) is significant?** 
 
-**It looks like the correlation between the grooming and contact networks is significant. Test Value (f(d)) is 0.362977, which is significant for p(f(perm) >= f(d)). This means, that the dyads that groomed each other were also more likely to be in contact with each other.**
+It looks like the correlation between the grooming and contact networks is significant. Test Value (f(d)) is 0.362977, which is significant for p(f(perm) >= f(d)). This means, that the dyads that groomed each other were also more likely to be in contact with each other.
 
 ### Linear regression
 
@@ -482,7 +481,7 @@ age_sending[i,] <- rep(age[i], nodes)} # The age of each actor is repeated over 
 head(age_sending)
 ```
 
-Receivers are represented by COLUMNS in the matrices
+Receivers are represented by COLUMNS in the matrices.
 
 ```{r spmonk-lr-matrix2}
 age_receiving <- matrix(data = NA, nrow = nodes, ncol = nodes)
@@ -495,6 +494,7 @@ head(age_receiving)
 **What is the null hypothesis? What is the alternative hypothesis?**
 
 ```{r spmonk-lr-qap}
+set.seed(123)
 lrqap.sp <- netlm(sp_groom_net, # response variable is a network object with a weighted adjacency matrix
                 list(age_sending)) # list of all predictor variables as network objects or matrix objects
 
@@ -507,7 +507,7 @@ summary(lrqap.sp)
 - **How much variability in the data does this model explain?**
 - **Is it a good fit model? Is this is a significant effect? How can you tell?**
 
-**The b1 coefficient is 0.24. For every 1 unit increase in age category, the individuals are likely to have 0.24 times greater edge weights for each grooming tie they send.**
+The b1 coefficient is 0.24. For every 1 unit increase in age category, the individuals are likely to have 0.24 times greater edge weights for each grooming tie they send.
 
 ### Logistic regression
 Recall that for logistic regression we are testing the presence or absence of ties based on the predictor variable (node attribute). Here we chose to look at the effect of sex of individuals on the presence or absence of ties in the play network.
@@ -538,6 +538,7 @@ head(sex_receiving)
 **What is the null hypothesis? What is the alternative hypothesis?**
 
 ```{r spmonk-logr-qap}
+set.seed(123)
 lrqap <- netlogit(sp_play_net_unweighted, # response variable is a network object with an unweighted adjacency matrix
                   list(sex_receiving, sex_sending), # list of predictor variables as network or matrix objects
                   reps = 1000) 
