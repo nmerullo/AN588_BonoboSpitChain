@@ -317,17 +317,17 @@ group <- bonobo_ggr_net %v% "group" # first create a vector giving the group of 
 group_homophily <- outer(group, group, FUN = "==") # shows us whether each combination of terms in vector group is the same (TRUE) or different (FALSE)
 group_homophily 
 ```
+
 For example, bonobos 1 and 2 belong to different groups, so cell [1,2] contains FALSE. We can now use this matrix as a predictor variable of group homophily in our logistic model from earlier.
 
-```{r}
+```{r, warning=FALSE}
 set.seed(123)
-logqap2 <- netlm(bonobo_ggr_net,
-                  list(rank_sending, rank_receiving, group_homophily),
+logqap2 <- netlogit(bonobo_ggr_net,
+                  list(rank_receiving, rank_sending, group_homophily),
                   reps = 1000)
 summary(logqap2)
 ```
-
-[describe output]
+At a glance, including group homophily does not improve this model. There is not a significant relationship between group homophily and the presence/absence of a given tie. The AIC value is only slightly lower for the model including group homphily than the one without group homophily.
 
 Our bonobo data was a little anti-climactic. But sometimes, that's the nature of small sample primatology work. To make things a little more exciting, let's run the three QAPs again with some spider monkey data.
 
