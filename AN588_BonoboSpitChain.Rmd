@@ -267,7 +267,7 @@ The null hypothesis is that neither rank of the actor nor grooming relationships
 
 ```{r multiple regression qap bonobo 3}
 mrqap <- netlm(bonobo_ggr_net, # response variable is a network object with a weighted adjacency matrix
-                list(rank_sending, bonobo_groom_net)) # list of all predictor variables as network or matrix objects
+                list(rank_sending, rank_receiving, bonobo_groom_net)) # list of all predictor variables as network or matrix objects
 
 summary(mrqap)
 ```
@@ -277,47 +277,33 @@ summary(mrqap)
 
 ## 3. Logistic regression
 Logistic regression QAPs test the extent to which independent variables are affecting the presence or absence of edges, but not the weight of those edges. If you have a network with binary ties, we can use this regression method to predict ties in the outcome network (response variable) <br>
-Using our bonobo dataset, we can ask: **Does older age make an individual more or less likely to G-G rub with other individuals?** <br>
+Using our bonobo dataset, we can ask: **Does higher rank make an individual more or less likely to G-G rub with other individuals?** <br>
 In this example, our GG rubbing network is the response variable while age is our predictor variable.
 
-If you imagine age (as the predictor variable) on the x axis, for every year a bonobo gets older, are they more likely to GG rub with more individuals? Will an older individual have more ties on the social network?
+If you imagine rank (as the predictor variable) on the x axis, for every unit of rank increase for a bonobo, are they more likely to GG rub with more individuals? Will an older individual have more ties on the social network?
 
-Similar to the multiple regression, we must first create a matrix that shows the rank of senders and receivers. As a reminder, senders are represented by ROWS while receivers are represented by COLUMNS in matrices 
-
-```{r matrix age bonobo}
-nodes <- length(bonobo_attribute$actor) # number of nodes in the data set
-age <- bonobo_ggr_net %v% "age" # a vector of the node-level variable we're interested in
-
-age_sending <- matrix(data = NA, nrow = nodes, ncol = nodes) #create empty matrix to be filled
-age_receiving <- matrix(data = NA, nrow = nodes, ncol = nodes)
-
-for (i in 1:nodes){ # for 1 through the number of nodes in the data set
-age_sending[i,] <- rep(age[i], nodes)} # The age of each actor is repeated over entire ROW of matrix
-age_sending
-
-for (i in 1:nodes){ 
-age_receiving[,i] <- rep(age[i], nodes)} 
-age_receiving
-```
+If we were using a different predictor variable, then we would need to create new matrices for senders and receivers. However, we are using the same one as before (rank) so we can skip that step this time.
 
 Now we can run our logistic regression! 
 
 **What is our null hypothesis for this question?**
 
 The netlogit() function performs a logistic regression of the network variable for the response variable (bonobo_ggr_net) on the network variables in the predictor variables (age_receiving and age_sending). The resulting fits and coefficients are tested against the null hypothesis.
+
 ```{r logistic qap bonobo}
-logqap <- netlogit(bonobo_ggr_net, # response variable is a network object with an unweighted adjacency matrix
-                  list(age_receiving, age_sending), # list of all predictor variables as network or matrix objects
+logqap <- netlogit(bonobo_ggr_net, # response variable is a network object
+                  list(rank_receiving, rank_sending), # list of all predictor variables as network or matrix objects
                   reps = 1000) # number of draws for quantile estimation, 1000 reps is the default
 summary(logqap)
 ```
-As a reminder, we are testing whether age affects the likelihood of giving and receiving GG rubbing. In the output above, x1 represents the first variable in the model (age_receiving), and x2 represents the second variable in the model (age_sending).
 
-Because they hypothesis we were testing was whether there is any relationship between age and sending and receiving ties, we will use the two-tailed p-valued in the column labeled Pr(>=|b|). There are no significant relationships between either predictor variable and the presence of ties in the network. 
+As a reminder, we are testing whether rank affects the likelihood of giving and receiving GG rubbing. In the output above, x1 represents the first variable in the model (rank_receiving), and x2 represents the second variable in the model (rank_sending).
 
-For the sake of practicing, we will interpret the slopes anyway. The first column, "Estimate" is the log odds which is difficult to interpret. Think of it as a tendency to form or not form ties. The log odds for age_receiving is -0.03708264, so there is an increasing tendency with age to not receive ties. The second column, Exp(b), gives odds ratios instead, which are easier to understand. The odds ratio gives the likelihood of a tie to form (or not form) under one condition in contrast to another condition. The odds ratio of age_receiving is c. So for each year older a female bonobo is, she is 0.9635965 times as likely to receive any given tie compared to if she was a year younger. More generally, they are less likely to receive GG rubbing as they get older. The same can be said for sending ties as they get older. However, we cannot actually say this, as the relationships are not significant. The Chi-squared goodness of fit test p-value is significant.
+Because they hypothesis we were testing was whether there is any relationship between rank and sending and receiving ties, we will use the two-tailed p-valued in the column labeled Pr(>=|b|). In this case, both are significant if our alpha value is 0.05; rank_receiving squeaks in right under it! They both have negative slopes as well.
 
-A follow up question given these results could be: are older bonobos less likely to participate in GG rubbing as often as younger bonobos? We could answer this with a linear regression QAP.
+The first column, "Estimate" is the log odds which is difficult to interpret. Think of it as a tendency to form or not form ties. The log odds for rank_receiving is -0.4903676, so there is an increasing tendency with rank to not receive ties. The second column, Exp(b), gives odds ratios instead, which are easier to understand. The odds ratio gives the likelihood of a tie to form (or not form) under one condition in contrast to another condition. The odds ratio of rank_receiving is 0.6124013. So for each unit of rank increase a female bonobo is, she is 0.6124013 times as likely to receive any given tie compared to if she were lower ranked. An odds ratio less than 1 is associated with a lower odds of outcome (receiving GG rubbing in this case). More generally, they are less likely to receive GG rubbing as they rise in the ranks. The same can be said for sending ties as they get higher ranked. This slope is even steeper at -0.6817886 and an even lower odds ratio of 0.5057117. With each unit of rank, the less likely a bonobo is to initiate gg rubbing. The Chi-squared goodness of fit test p-value is significant.
+
+A follow up question given these results could be: are higher ranked bonobos less likely to participate in GG rubbing as often as lower ranked bonobos? We could answer this with a linear regression QAP because we would be looking at the weight of edges in this case. The multiple regression we did before, which also took grooming into account, looked at this and may help address this question.
 
 ## 4. Homophily
 
@@ -326,6 +312,7 @@ You may have noticed when we visualized the bonobo data that the individuals sor
 We can account for the bonobos' group belonging including a variable that accounts for homophily, the tendency of actors to form edges with others who are similar to them in some way. To do this we need to create a group homophily variable as a binary adjacency matrix. In this matrix, "1" or "TRUE" will indicate that a sender and receiver share the same group value. "0" or "FALSE" will indicate that they do not share the same group value.
 
 The function outer() will take two vectors (or two of the same vector in this case) and create a new matrix based on a specified function applied to every combination of terms in the vector. The function "==" tells outer() to create a matrix that reports TRUE/FALSE for every combination of terms.
+
 ```{r}
 group <- bonobo_ggr_net %v% "group" # first create a vector giving the group of each node
 group_homophily <- outer(group, group, FUN = "==") # Shows us whether each combination of terms in the vector group is the same (TRUE) or different (FALSE)
@@ -341,9 +328,7 @@ logqap2 <- netlm(bonobo_ggr_net,
 summary(logqap2)
 ```
 
-
 Our bonobo data was a little anti-climactic. But sometimes, that's the nature of small sample primatology work. To make things a little more exciting, let's run the three QAPs again with some spider monkey data.
-
 
 # Spider Monkey Social Networks
 The spider monkeys in this data set are *Ateles hybridus* or brown spider monkeys. They are a group living primate with fission-fusion dynamics, similar to bonobos. However, spider monkeys are platyrrhines whereas bonobos are apes. The original intent of this data set and what it was published for was to test how parasites moved between individuals depending on different levels of contact. That leaves us with a rich dataset of networks and attributes that we can work with!
@@ -471,6 +456,7 @@ qap_cor <- qaptest(list(sp_groom_net, sp_contact_net), # include both network ob
 summary(qap_cor)
 plot(qap_cor)
 ```
+
 **How do you interpret this?**
 **Are these highly correlated networks?** 
 **Which test (upper or lower tailed) is significant?** 
