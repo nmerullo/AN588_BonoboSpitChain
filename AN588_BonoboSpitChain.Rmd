@@ -29,7 +29,7 @@ A network analysis (as opposed to a non-network analysis) will reveal informatio
 
 ## Terms to know
 - **Nodes**: the individuals in the social network
-- **Edges**: the relationships between individuals in a network
+- **Edges**: the relationships between individuals in a network. Also called "ties"
 ```{r nodesandedges, echo=FALSE, out.width="70%"}
 knitr::include_graphics("https://memgraph.com/images/blog/introduction-to-node-embedding/memgraph-tutorial-graph-sketch.png")
 ```
@@ -106,7 +106,9 @@ bonobo_attribute
 ```
 **Who is the highest ranking bonobo? Who is the lowest? Who is the oldest? Who is the youngest?**
 
-Now we can create the network objects and add node attributes to the objects. Note that adding node attributes to objects involves '%v%', which resembles a pipe. This functions similarly to a $ operator and allows us to add rank variables to a dataset.
+Note: Rank is determined by Davids Score. A higher Davids score denotes a higher rank.
+
+Now we can create the network objects and add node attributes to the objects. Note that adding node attributes to objects involves '%v%', which resembles a pipe. This functions similarly to a $ operator and allows us to add rank variables to a node.'%e%' adds attributes to edges. 
 ```{r bonobo network objects}
 bonobo_ggr_net <- as.network.data.frame(bonobo_ggr_edgelist) # turns GG rubbing edge list into a GG rubbing network
 bonobo_groom_net<-as.network.data.frame(bonobo_groom_edgelist) # turns grooming edge list into a grooming network
@@ -329,7 +331,7 @@ summary(logqap2)
 ```
 At a glance, including group homophily does not improve this model. There is not a significant relationship between group homophily and the presence/absence of a given tie. The AIC value is only slightly lower for the model including group homphily than the one without group homophily.
 
-Our bonobo data was a little anti-climactic. But sometimes, that's the nature of small sample primatology work. To make things a little more exciting, let's run the three QAPs again with some spider monkey data.
+Our bonobo data was a little anti-climactic. But sometimes, that's the nature of small sample primatology work. We are at the hour mark. If you would like to continue on, we have another data set. To make things a little more exciting, let's run the three QAPs again with some spider monkey data, but this time you can try it more on your own.
 
 # Spider Monkey Social Networks
 The spider monkeys in this data set are *Ateles hybridus* or brown spider monkeys. They are a group living primate with fission-fusion dynamics, similar to bonobos. However, spider monkeys are platyrrhines whereas bonobos are apes. The original intent of this data set and what it was published for was to test how parasites moved between individuals depending on different levels of contact. That leaves us with a rich dataset of networks and attributes that we can work with!
@@ -547,6 +549,11 @@ summary(lrqap)
 
 **Do either sex receiving or sex sending have a significant relationship with amount of edges in the play network?**
 **Does this model significantly explain the effect?**
+
+We looked at using this method in social networks, but you could also use it in any network.
+Some examples include anything with nodes that are not people such as:
+- Transit stops and the edges would be commuters moving between them
+- Academic papers and the citations being the edges 
 
 # References 
 Anzà, S., Demuru, E., & Palagi, E. (2021). Sex and grooming as exchange commodities in female bonobos’ daily biological market. Scientific reports, 11(1), 19344.

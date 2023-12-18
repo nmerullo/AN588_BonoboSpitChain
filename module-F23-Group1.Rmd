@@ -13,7 +13,7 @@ output:
 knitr::include_graphics("https://static.wikia.nocookie.net/thelword/images/8/80/LW_S01E09_The_Chart_01.png/revision/latest/scale-to-width-down/1000?cb=2021083014050")
 ```
 
-# What is a social network ?
+# What is a social network?
 
 A *social network* describes all the individuals in a group AND all the links between them. The photo above shows a social network from the television show [*The L Word*](https://en.wikipedia.org/wiki/The_L_Word). In this particular network, the *nodes*, shown as names, represent people in the fictional LA social scene of the series; while the *edges*, or lines between names, represent romantic and sexual connections to each other. As you can see, the author of this particular social network analysis - Alice Pieszecki - has annotated her network to indicate particularly important (or promiscuous) nodes (i.e., Shane, Lauren, and Alice, herself) that have many connections across the network, and colored some nodes and edges differently to indicate perhaps other social qualities within the network. 
 
@@ -36,7 +36,7 @@ A **network analysis** (as opposed to a **non-network analysis**) may be used to
 ## Terms to know
 
 - **Nodes**: the individuals in the social network
-- **Edges**: the relationships between individuals in a network
+- **Edges**: the relationships between individuals in a network. Also called "ties"
 ```{r nodesandedges, echo=FALSE, out.width="70%"}
 knitr::include_graphics("https://memgraph.com/images/blog/introduction-to-node-embedding/memgraph-tutorial-graph-sketch.png")
 ```
@@ -129,7 +129,9 @@ bonobo_attribute
 
 **Who is the highest ranking bonobo? Who is the lowest? Who is the oldest? Who is the youngest?**
 
-Now we can create the network objects and also add node attributes to those objects. Note that adding node attributes to objects involves the `%v%` operator, which resembles the pipe operator we use in the {tidyverse} (`%>%`). This functions similarly to the `$` operator for tibbles or dataframes, and allows us to add rank variables to a dataset.
+Note: Rank is determined by Davids Score. A higher Davids score denotes a higher rank.
+
+Now we can create the network objects and also add node attributes to those objects. Note that adding node attributes to objects involves the `%v%` operator, which resembles the pipe operator we use in the {tidyverse} (`%>%`). This functions similarly to the `$` operator for tibbles or dataframes, and allows us to add rank variables to the nodes. '%e%' adds attributes to edges. 
 ```{r bonobo network objects}
 bonobo_ggr_net <- as.network.data.frame(bonobo_ggr_edgelist) # turns GG rubbing edge list into a GG rubbing network
 bonobo_groom_net<-as.network.data.frame(bonobo_groom_edgelist) # turns grooming edge list into a grooming network
@@ -369,7 +371,7 @@ summary(logqap2)
 
 At a glance, including group homophily does not improve this model. There is not a significant relationship between group homophily and the presence/absence of a given tie. The AIC value is only slightly lower for the model including group homphily than the one without group homophily.
 
-Overall, the results from our bonobo data are a little anti-climactic (not much we looked in to seemed important). But sometimes, that's the nature of small-sample primatology work. To make things a little more exciting, let's run the three QAPs again with some spider monkey data!
+Overall, the results from our bonobo data are a little anti-climactic (not much we looked in to seemed important). But sometimes, that's the nature of small-sample primatology work. We are at the hour mark. If you would like to continue on, we have another data set.To make things a little more exciting, let's run the three QAPs again with some spider monkey data!
 
 # Spider Monkey Social Networks
 
@@ -609,6 +611,11 @@ summary(lrqap)
 **Do either sex receiving or sex sending have a significant relationship with amount of edges in the play network?**
 
 **Does this model significantly explain the effect?**
+
+We looked at using this method in social networks, but you could also use it in any network.
+Some examples include anything with nodes that are not people such as:
+- Transit stops and the edges would be commuters moving between them
+- Academic papers and the citations being the edges 
 
 # References 
 
